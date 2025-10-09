@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Data;
 
 namespace NotificationsVisualizerLibrary.Converters
@@ -13,12 +9,7 @@ namespace NotificationsVisualizerLibrary.Converters
         {
             bool answer = value is string && !string.IsNullOrWhiteSpace(value as string);
 
-            if (parameter != null)
-            {
-                return !answer;
-            }
-
-            return answer;
+            return parameter != null ? !answer : answer;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

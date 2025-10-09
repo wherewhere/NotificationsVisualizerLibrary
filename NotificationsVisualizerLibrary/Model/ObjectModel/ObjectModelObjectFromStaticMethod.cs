@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -19,7 +15,7 @@ namespace NotificationsVisualizerLibrary.Model
             ClassName = className;
             MethodName = methodName;
 
-            foreach (var cVal in parameterValues)
+            foreach (IObjectModelValue cVal in parameterValues)
             {
                 ParameterValues.Add(cVal);
             }

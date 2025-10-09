@@ -1,13 +1,10 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model;
-using NotificationsVisualizerLibrary.Model.Enums;
 
 namespace NotificationsVisualizerLibrary.Parsers
 {
@@ -28,7 +25,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             XAttribute answer = this.FirstOrDefault(i => i.IsType(name, caseSensitive));
 
             if (answer != null)
-                base.Remove(answer);
+            {
+                Remove(answer);
+            }
 
             return answer;
         }
@@ -63,56 +62,54 @@ namespace NotificationsVisualizerLibrary.Parsers
     {
         private enum NotificationType
         {
-            Tile
-            , Toast
-            , AdaptiveContent
+            Tile,
+            Toast,
+            AdaptiveContent
         }
 
-        private static readonly string ATTR_TILE_VERSION = "version";
+        private const string ATTR_TILE_VERSION = "version";
 
-        private static readonly string ATTR_VISUAL_VERSION = "version";
-        private static readonly string ATTR_VISUAL_BRANDING = "branding";
-        private static readonly string ATTR_VISUAL_DISPLAY_NAME = "displayName";
-        private static readonly string ATTR_VISUAL_LANG = "lang";
-        private static readonly string ATTR_VISUAL_BASEURI = "baseUri";
-        private static readonly string ATTR_VISUAL_ADDIMAGEQUERY = "addImageQuery";
-        private static readonly string ATTR_VISUAL_CONTENTID = "contentId";
+        private const string ATTR_VISUAL_VERSION = ATTR_TILE_VERSION;
+        private const string ATTR_VISUAL_BRANDING = "branding";
+        private const string ATTR_VISUAL_DISPLAY_NAME = "displayName";
+        private const string ATTR_VISUAL_LANG = "lang";
+        private const string ATTR_VISUAL_BASEURI = "baseUri";
+        private const string ATTR_VISUAL_ADDIMAGEQUERY = "addImageQuery";
+        private const string ATTR_VISUAL_CONTENTID = "contentId";
 
-        private static readonly string ATTR_BINDING_TEMPLATE = "template";
-        private static readonly string ATTR_BINDING_BRANDING = "branding";
-        private static readonly string ATTR_BINDING_DISPLAY_NAME = "displayName";
-        private static readonly string ATTR_BINDING_FALLBACK = "fallback";
-        private static readonly string ATTR_BINDING_LANG = "lang";
-        private static readonly string ATTR_BINDING_BASEURI = "baseUri";
-        private static readonly string ATTR_BINDING_ADDIMAGEQUERY = "addImageQuery";
-        private static readonly string ATTR_BINDING_CONTENTID = "contentId";
-        private static readonly string ATTR_BINDING_HINT_TEXT_STACKING = "hint-textStacking";
-        private static readonly string ATTR_BINDING_HINT_OVERLAY = "hint-overlay";
+        private const string ATTR_BINDING_TEMPLATE = "template";
+        private const string ATTR_BINDING_BRANDING = ATTR_VISUAL_BRANDING;
+        private const string ATTR_BINDING_DISPLAY_NAME = ATTR_VISUAL_DISPLAY_NAME;
+        private const string ATTR_BINDING_FALLBACK = "fallback";
+        private const string ATTR_BINDING_LANG = ATTR_VISUAL_LANG;
+        private const string ATTR_BINDING_BASEURI = ATTR_VISUAL_BASEURI;
+        private const string ATTR_BINDING_ADDIMAGEQUERY = ATTR_VISUAL_ADDIMAGEQUERY;
+        private const string ATTR_BINDING_CONTENTID = ATTR_VISUAL_CONTENTID;
+        private const string ATTR_BINDING_HINT_TEXT_STACKING = "hint-textStacking";
+        private const string ATTR_BINDING_HINT_OVERLAY = "hint-overlay";
 
-        private static readonly string ATTR_SUBGROUP_HINT_WEIGHT = "hint-weight";
-        private static readonly string ATTR_SUBGROUP_HINT_TEXT_STACKING = "hint-textStacking";
+        private const string ATTR_SUBGROUP_HINT_WEIGHT = "hint-weight";
+        private const string ATTR_SUBGROUP_HINT_TEXT_STACKING = ATTR_BINDING_HINT_TEXT_STACKING;
 
+        private const string ATTR_TEXT_HINT_STYLE = "hint-style";
+        private const string ATTR_TEXT_HINT_WRAP = "hint-wrap";
+        private const string ATTR_TEXT_HINT_MAX_LINES = "hint-maxLines";
+        private const string ATTR_TEXT_HINT_MIN_LINES = "hint-minLines";
+        private const string ATTR_TEXT_HINT_ALIGN = "hint-align";
+        private const string ATTR_TEXT_LANG = ATTR_VISUAL_LANG;
 
-        private static readonly string ATTR_TEXT_HINT_STYLE = "hint-style";
-        private static readonly string ATTR_TEXT_HINT_WRAP = "hint-wrap";
-        private static readonly string ATTR_TEXT_HINT_MAX_LINES = "hint-maxLines";
-        private static readonly string ATTR_TEXT_HINT_MIN_LINES = "hint-minLines";
-        private static readonly string ATTR_TEXT_HINT_ALIGN = "hint-align";
-        private static readonly string ATTR_TEXT_LANG = "lang";
-
-
-        private static readonly string ATTR_IMAGE_SRC = "src";
-        private static readonly string ATTR_IMAGE_PLACEMENT = "placement";
-        private static readonly string ATTR_IMAGE_ALT = "alt";
-        private static readonly string ATTR_IMAGE_ADDIMAGEQUERY = "addImageQuery";
-        private static readonly string ATTR_IMAGE_HINT_CROP = "hint-crop";
-        private static readonly string ATTR_IMAGE_HINT_REMOVE_MARGIN = "hint-removeMargin";
-        private static readonly string ATTR_IMAGE_HINT_ALIGN = "hint-align";
+        private const string ATTR_IMAGE_SRC = "src";
+        private const string ATTR_IMAGE_PLACEMENT = "placement";
+        private const string ATTR_IMAGE_ALT = "alt";
+        private const string ATTR_IMAGE_ADDIMAGEQUERY = "addImageQuery";
+        private const string ATTR_IMAGE_HINT_CROP = "hint-crop";
+        private const string ATTR_IMAGE_HINT_REMOVE_MARGIN = "hint-removeMargin";
+        private const string ATTR_IMAGE_HINT_ALIGN = "hint-align";
 
         /// <summary>
         /// 5 KB (5120 bytes) is too much, only up to 5119 bytes are allowed
         /// </summary>
-        private static readonly int PAYLOAD_SIZE_LIMIT = 5119;
+        private const int PAYLOAD_SIZE_LIMIT = 5119;
 
         public bool IsMatch(string text)
         {
@@ -161,7 +158,6 @@ namespace NotificationsVisualizerLibrary.Parsers
             }
         }
 
-
         private ParseResult ParseTile(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
         {
             ParseTileHelper(result, doc, supportedFeatures);
@@ -188,10 +184,10 @@ namespace NotificationsVisualizerLibrary.Parsers
             int payloadSize = System.Text.Encoding.UTF8.GetByteCount(xml);
 
             if (payloadSize > PAYLOAD_SIZE_LIMIT)
-                result.AddErrorButRenderAllowed($"Your payload exceeds the 5 KB size limit (it is {payloadSize.ToString("N0")} Bytes). Please reduce your payload, or else Windows will not display it.", ErrorPositionInfo.Default);
+            {
+                result.AddErrorButRenderAllowed($"Your payload exceeds the 5 KB size limit (it is {payloadSize:N0} Bytes). Please reduce your payload, or else Windows will not display it.", ErrorPositionInfo.Default);
+            }
         }
-
-
 
         private void ParseToastHelper(ParseResult result, XContainer parentNode, FeatureSet supportedFeatures)
         {
@@ -209,7 +205,6 @@ namespace NotificationsVisualizerLibrary.Parsers
             {
                 result.Toast.Parse(result, node);
             }
-
             catch (IncompleteElementException) { }
         }
 
@@ -222,7 +217,6 @@ namespace NotificationsVisualizerLibrary.Parsers
                 AttributesHelper attributes = new AttributesHelper(parentNode.Attributes());
                 result.AdaptiveContent.ContinueParsing(result, parentNode, attributes, parentNode.Elements(), null, false);
             }
-
             catch (IncompleteElementException) { }
         }
 
@@ -237,7 +231,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             }
 
             if (!EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 return;
+            }
 
             result.Tile = new Model.Tile(supportedFeatures);
 
@@ -264,7 +260,6 @@ namespace NotificationsVisualizerLibrary.Parsers
             {
                 into.Parse(result, node);
             }
-
             catch (IncompleteElementException) { }
         }
 
@@ -290,32 +285,36 @@ namespace NotificationsVisualizerLibrary.Parsers
 
         internal static ErrorPositionInfo GetErrorPositionInfo(XObject xObject)
         {
-            IXmlLineInfo i = xObject as IXmlLineInfo;
+            IXmlLineInfo i = xObject;
 
             return new ErrorPositionInfo()
             {
                 LineNumber = i.LineNumber
             };
         }
-        
-        
+
+
         internal static string ConstructUri(string src, string baseUri, bool addImageQuery)
         {
             string answer = baseUri + src;
-            
+
             if (addImageQuery)
             {
                 if (answer.Contains('?'))
+                {
                     answer += "&";
+                }
                 else
+                {
                     answer += "?";
+                }
 
                 answer += "ms-scale=100&ms-contrast=standard&ms-lang=en-us";
             }
 
             return answer;
         }
-        
+
         /// <summary>
         /// Returns true if fine. Sets error and returns false if there's an error.
         /// </summary>
@@ -328,7 +327,7 @@ namespace NotificationsVisualizerLibrary.Parsers
             {
                 switch (child.NodeType)
                 {
-                    case System.Xml.XmlNodeType.Text:
+                    case XmlNodeType.Text:
 
                         // A text node might just be white space... but if it contains text, that's invalid
                         if (!string.IsNullOrWhiteSpace((child as XText).Value))
@@ -343,17 +342,17 @@ namespace NotificationsVisualizerLibrary.Parsers
 
             return true;
         }
-        
-        private ParseResult Error(string message)
-        {
-            return ParseResult.GenerateForError(new ParseError(ParseErrorType.Error, message));
-        }
+
+        //private ParseResult Error(string message)
+        //{
+        //    return ParseResult.GenerateForError(new ParseError(ParseErrorType.Error, message));
+        //}
 
         internal static bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct
         {
             if (text != null)
             {
-                foreach (var e in Enum.GetValues(typeof(TEnum)))
+                foreach (object e in Enum.GetValues(typeof(TEnum)))
                 {
                     if (text.Equals(e.ToString(), StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -363,7 +362,7 @@ namespace NotificationsVisualizerLibrary.Parsers
                 }
             }
 
-            answer = default(TEnum);
+            answer = default;
             return false;
         }
 
@@ -378,7 +377,9 @@ namespace NotificationsVisualizerLibrary.Parsers
                 if (attr.Value != null)
                 {
                     if (TryParseEnum(attr.Value, out answer))
+                    {
                         return true;
+                    }
 
                     // Couldn't find matching enum
                     result.AddWarning($@"Unknown value ""{attr.Value}"" on {attributeName} attribute", GetErrorPositionInfo(attr));
@@ -386,11 +387,13 @@ namespace NotificationsVisualizerLibrary.Parsers
 
                 // Attribute doesn't have a value
                 else
+                {
                     result.AddWarning($@"Attribute {attributeName} has no value specified", GetErrorPositionInfo(attr));
+                }
             }
 
             // Attribute isn't found, no warning
-            answer = default(TEnum);
+            answer = default;
             return false;
         }
 
@@ -406,19 +409,22 @@ namespace NotificationsVisualizerLibrary.Parsers
                 {
                     // If it's an integer
                     if (int.TryParse(attr.Value, out answer))
+                    {
                         return true;
+                    }
 
                     // Otherwise warning about not being integer
                     result.AddWarning($@"{attributeName} only accepts integer values, not ""{attr.Value}""", GetErrorPositionInfo(attr));
                 }
-
                 // Attribute doesn't have a value
                 else
+                {
                     result.AddWarning($@"Attribute {attributeName} has no value specified", GetErrorPositionInfo(attr));
+                }
             }
 
             // Attribute isn't found, no warning
-            answer = default(int);
+            answer = default;
             return false;
         }
 
@@ -434,19 +440,22 @@ namespace NotificationsVisualizerLibrary.Parsers
                 {
                     // If it's a double
                     if (double.TryParse(attr.Value, out answer))
+                    {
                         return true;
+                    }
 
                     // Otherwise warning about not being double
                     result.AddWarning($@"{attributeName} only accepts double values, not ""{attr.Value}""", GetErrorPositionInfo(attr));
                 }
-
                 // Attribute doesn't have a value
                 else
+                {
                     result.AddWarning($@"Attribute {attributeName} has no value specified", GetErrorPositionInfo(attr));
+                }
             }
 
             // Attribute isn't found, no warning
-            answer = default(double);
+            answer = default;
             return false;
         }
 
@@ -462,19 +471,22 @@ namespace NotificationsVisualizerLibrary.Parsers
                 {
                     // If it's a bool
                     if (bool.TryParse(attr.Value, out answer))
+                    {
                         return true;
+                    }
 
                     // Otherwise warning about not being double
                     result.AddWarning($@"{attributeName} only accepts boolean values, not ""{attr.Value}""", GetErrorPositionInfo(attr));
                 }
-
                 // Attribute doesn't have a value
                 else
+                {
                     result.AddWarning($@"Attribute {attributeName} has no value specified", GetErrorPositionInfo(attr));
+                }
             }
 
             // Attribute isn't found, no warning
-            answer = default(bool);
+            answer = default;
             return false;
         }
     }

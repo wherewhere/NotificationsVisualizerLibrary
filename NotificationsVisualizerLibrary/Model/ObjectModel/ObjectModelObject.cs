@@ -2,9 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -25,7 +22,7 @@ namespace NotificationsVisualizerLibrary.Model
         {
             Name = name;
 
-            foreach (var cVal in constructorValues)
+            foreach (IObjectModelValue cVal in constructorValues)
             {
                 ConstructorValues.Add(cVal);
             }
@@ -42,8 +39,7 @@ namespace NotificationsVisualizerLibrary.Model
                 return;
             }
 
-            IObjectModelValue objectPropertyValue = propertyValue as IObjectModelValue;
-            if (objectPropertyValue == null)
+            if (!(propertyValue is IObjectModelValue objectPropertyValue))
             {
                 objectPropertyValue = Create(propertyValue);
             }
@@ -72,9 +68,9 @@ namespace NotificationsVisualizerLibrary.Model
                 string propertyValues = "\n{";
                 bool addedProperty = false;
 
-                foreach (var pVal in PropertyValues.Where(i => i.Value != null))
+                foreach (KeyValuePair<string, IObjectModelValue> pVal in PropertyValues.Where(i => i.Value != null))
                 {
-                    var val = pVal.Value.ToString();
+                    string val = pVal.Value.ToString();
                     if (val == null)
                     {
                         continue;
@@ -91,7 +87,7 @@ namespace NotificationsVisualizerLibrary.Model
 
                 if (Bindings.Count > 0)
                 {
-                    foreach (var b in Bindings)
+                    foreach (KeyValuePair<ObjectModelBindingPropertyAttribute, string> b in Bindings)
                     {
                         propertyValues += $"\n    {b.Key.PropertyName} = new {b.Key.BindableTypeName}({new ObjectModelString(b.Value)}),";
                     }
@@ -118,28 +114,28 @@ namespace NotificationsVisualizerLibrary.Model
 
         public string ToJavascriptString(List<string> declaredVars)
         {
-            var jsVar = Var();
+            string jsVar = Var();
             string answer = "";
             string propertyValues = "";
 
             answer += $"{DeclareJsVar(declaredVars)} = new {ROOT_JS_NAMESPACE}.{Name}({string.Join(", ", ConstructorValues)});";
 
             // If there's complex properties, we need to construct those first
-            foreach (var pVal in PropertyValues.Where(i => i.Value is ObjectModelObject))
+            foreach (KeyValuePair<string, IObjectModelValue> pVal in PropertyValues.Where(i => i.Value is ObjectModelObject))
             {
-                var val = pVal.Value.ToJavascriptString(declaredVars);
+                string val = pVal.Value.ToJavascriptString(declaredVars);
                 if (val != null)
                 {
-                    answer += "\n" + val + "\n";
+                    answer += $"\n{val}\n";
                     answer += $"{jsVar}.{ToLowerCamelCase(pVal.Key)} = {(pVal.Value as ObjectModelObject).Var()};\n";
                 }
             }
 
             if (PropertyValues.Count > 0)
             {
-                foreach (var pVal in PropertyValues.Where(i => i.Value != null && !(i.Value is ObjectModelObject)))
+                foreach (KeyValuePair<string, IObjectModelValue> pVal in PropertyValues.Where(i => i.Value != null && !(i.Value is ObjectModelObject)))
                 {
-                    var val = pVal.Value.ToJavascriptString(declaredVars);
+                    string val = pVal.Value.ToJavascriptString(declaredVars);
                     if (val == null)
                     {
                         continue;
@@ -148,17 +144,17 @@ namespace NotificationsVisualizerLibrary.Model
                     // If list, we construct an item then add it, then repeat
                     if (pVal.Value is ObjectModelListInitialization)
                     {
-                        var listValues = (pVal.Value as ObjectModelListInitialization).Values.Where(i => i != null).ToArray();
+                        IObjectModelValue[] listValues = (pVal.Value as ObjectModelListInitialization).Values.Where(i => i != null).ToArray();
                         if (listValues.Length > 0)
                         {
                             propertyValues += "\n";
 
-                            foreach (var listItem in listValues)
+                            foreach (IObjectModelValue listItem in listValues)
                             {
                                 // If complex value, need to construct it first
                                 if (listItem is ObjectModelObject)
                                 {
-                                    propertyValues += "\n" + listItem.ToJavascriptString(declaredVars);
+                                    propertyValues += $"\n{listItem.ToJavascriptString(declaredVars)}";
                                     propertyValues += $"\n{jsVar}.{ToLowerCamelCase(pVal.Key)}.push({(listItem as ObjectModelObject).Var()});";
                                 }
                                 else
@@ -180,9 +176,9 @@ namespace NotificationsVisualizerLibrary.Model
 
             if (Bindings.Count > 0)
             {
-                foreach (var b in Bindings)
+                foreach (KeyValuePair<ObjectModelBindingPropertyAttribute, string> b in Bindings)
                 {
-                    var enumValue = new ObjectModelEnum(Name + "BindableProperty", b.Key.PropertyName);
+                    ObjectModelEnum enumValue = new ObjectModelEnum(Name + "BindableProperty", b.Key.PropertyName);
 
                     propertyValues += $"\n{jsVar}.bindings.insert({enumValue.ToJavascriptString()}, {new ObjectModelString(b.Value).ToJavascriptString()});";
                 }
@@ -200,28 +196,28 @@ namespace NotificationsVisualizerLibrary.Model
 
         public string ToCPlusPlusString(List<string> declaredVars)
         {
-            var cppVar = Var();
+            string cppVar = Var();
             string answer = "";
             string propertyValues = "";
 
             answer += $"{DeclareCPlusPlusVar(declaredVars)} = ref new {Name}({string.Join(", ", ConstructorValues)});";
 
             // If there's complex properties, we need to construct those first
-            foreach (var pVal in PropertyValues.Where(i => i.Value is ObjectModelObject))
+            foreach (KeyValuePair<string, IObjectModelValue> pVal in PropertyValues.Where(i => i.Value is ObjectModelObject))
             {
-                var val = pVal.Value.ToCPlusPlusString(declaredVars);
+                string val = pVal.Value.ToCPlusPlusString(declaredVars);
                 if (val != null)
                 {
-                    answer += "\n" + val + "\n";
+                    answer += $"\n{val}\n";
                     answer += $"{cppVar}->{pVal.Key} = {(pVal.Value as ObjectModelObject).Var()};\n";
                 }
             }
 
             if (PropertyValues.Count > 0)
             {
-                foreach (var pVal in PropertyValues.Where(i => i.Value != null && !(i.Value is ObjectModelObject)))
+                foreach (KeyValuePair<string, IObjectModelValue> pVal in PropertyValues.Where(i => i.Value != null && !(i.Value is ObjectModelObject)))
                 {
-                    var val = pVal.Value.ToCPlusPlusString(declaredVars);
+                    string val = pVal.Value.ToCPlusPlusString(declaredVars);
                     if (val == null)
                     {
                         continue;
@@ -230,17 +226,17 @@ namespace NotificationsVisualizerLibrary.Model
                     // If list, we construct an item then add it, then repeat
                     if (pVal.Value is ObjectModelListInitialization)
                     {
-                        var listValues = (pVal.Value as ObjectModelListInitialization).Values.Where(i => i != null).ToArray();
+                        IObjectModelValue[] listValues = (pVal.Value as ObjectModelListInitialization).Values.Where(i => i != null).ToArray();
                         if (listValues.Length > 0)
                         {
                             propertyValues += "\n";
 
-                            foreach (var listItem in listValues)
+                            foreach (IObjectModelValue listItem in listValues)
                             {
                                 // If complex value, need to construct it first
                                 if (listItem is ObjectModelObject)
                                 {
-                                    propertyValues += "\n" + listItem.ToCPlusPlusString(declaredVars);
+                                    propertyValues += $"\n{listItem.ToCPlusPlusString(declaredVars)}";
                                     propertyValues += $"\n{cppVar}->{pVal.Key}->Append({(listItem as ObjectModelObject).Var()});";
                                 }
                                 else
@@ -252,7 +248,6 @@ namespace NotificationsVisualizerLibrary.Model
                             }
                         }
                     }
-
                     else
                     {
                         propertyValues += $"\n{cppVar}->{pVal.Key} = {val};";
@@ -262,9 +257,9 @@ namespace NotificationsVisualizerLibrary.Model
 
             if (Bindings.Count > 0)
             {
-                foreach (var b in Bindings)
+                foreach (KeyValuePair<ObjectModelBindingPropertyAttribute, string> b in Bindings)
                 {
-                    var enumValue = new ObjectModelEnum(Name + "BindableProperty", b.Key.PropertyName);
+                    ObjectModelEnum enumValue = new ObjectModelEnum($"{Name}BindableProperty", b.Key.PropertyName);
 
                     propertyValues += $"\n{cppVar}->Bindings->Insert({enumValue.ToCPlusPlusString(declaredVars)}, {new ObjectModelString(b.Value).ToCPlusPlusString(declaredVars)});";
                 }
@@ -277,7 +272,7 @@ namespace NotificationsVisualizerLibrary.Model
 
         private string DeclareJsVar(List<string> declaredVars)
         {
-            var jsVar = Var();
+            string jsVar = Var();
 
             if (declaredVars.Contains(jsVar))
             {
@@ -286,13 +281,13 @@ namespace NotificationsVisualizerLibrary.Model
             else
             {
                 declaredVars.Add(jsVar);
-                return "var " + jsVar;
+                return $"var {jsVar}";
             }
         }
 
         private string DeclareCPlusPlusVar(List<string> declaredVars)
         {
-            var v = Var();
+            string v = Var();
 
             if (declaredVars.Contains(v))
             {
@@ -301,7 +296,7 @@ namespace NotificationsVisualizerLibrary.Model
             else
             {
                 declaredVars.Add(v);
-                return "auto " + v;
+                return $"auto {v}";
             }
         }
 
@@ -333,45 +328,32 @@ namespace NotificationsVisualizerLibrary.Model
 
         public static IObjectModelValue Create(object obj)
         {
-            if (obj is IObjectModelValue)
+            switch (obj)
             {
-                return obj as IObjectModelValue;
+                case IObjectModelValue _:
+                    return obj as IObjectModelValue;
+                case string _:
+                    return new ObjectModelString((string)obj);
+                case double _:
+                    return new ObjectModelDouble((double)obj);
+                case Enum _:
+                    return new ObjectModelEnum(RetrieveEnumName((Enum)obj), obj.ToString());
+                case Uri _:
+                    return new ObjectModelUri((Uri)obj);
+                case bool _:
+                    return new ObjectModelBool((bool)obj);
+                case DateTime _:
+                    return new ObjectModelDateTime((DateTime)obj);
+                case int _:
+                    return new ObjectModelInt((int)obj);
+                default:
+                    return null;
             }
-            if (obj is string)
-            {
-                return new ObjectModelString(obj as string);
-            }
-            if (obj is double)
-            {
-                return new ObjectModelDouble((double)obj);
-            }
-            if (obj is Enum)
-            {
-                return new ObjectModelEnum(RetrieveEnumName((Enum)obj), obj.ToString());
-            }
-            if (obj is Uri)
-            {
-                return new ObjectModelUri((Uri)obj);
-            }
-            if (obj is bool)
-            {
-                return new ObjectModelBool((bool)obj);
-            }
-            if (obj is DateTime)
-            {
-                return new ObjectModelDateTime((DateTime)obj);
-            }
-            if (obj is int)
-            {
-                return new ObjectModelInt((int)obj);
-            }
-
-            return null;
         }
 
         private static string RetrieveEnumName(Enum e)
         {
-            var typeInfo = e.GetType();
+            Type typeInfo = e.GetType();
 
             return typeInfo.Name;
         }
@@ -400,9 +382,9 @@ namespace NotificationsVisualizerLibrary.Model
                 return null;
             }
 
-            var valuesWithIndentation = Values.Where(i => i != null).Select(i => ObjectModelObject.IndentNewLines(i.ToString(), 4));
+            IEnumerable<string> valuesWithIndentation = Values.Where(i => i != null).Select(i => ObjectModelObject.IndentNewLines(i.ToString(), 4));
 
-            return "\n{\n    " + string.Join(",\n    ", valuesWithIndentation) + "\n}";
+            return $"\n{{\n    {string.Join(",\n    ", valuesWithIndentation)}\n}}";
         }
 
         public string ToJavascriptString()

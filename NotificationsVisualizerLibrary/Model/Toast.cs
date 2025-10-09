@@ -1,11 +1,9 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.BaseElements;
+using NotificationsVisualizerLibrary.Parsers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.BaseElements;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -86,11 +84,13 @@ namespace NotificationsVisualizerLibrary.Model
         internal void Parse(ParseResult result, XElement node)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
 
-            
+
             ParseKnownAttributes(attributes, result);
 
             HandleRemainingAttributes(attributes, result);
@@ -109,36 +109,43 @@ namespace NotificationsVisualizerLibrary.Model
         private void ParseKnownAttributes(AttributesHelper attributes, ParseResult result)
         {
             // Launch is optional
-            var attrLaunc = attributes.PopAttribute(ATTR_LAUNCH);
+            XAttribute attrLaunc = attributes.PopAttribute(ATTR_LAUNCH);
             if (attrLaunc != null)
+            {
                 Launch = attrLaunc.Value;
+            }
 
             // TODO - check duration is valid
 
             // activationType is optional
-            ActivationType activationType;
-            if (TryParseEnum<ActivationType>(result, attributes, ATTR_ACTIVATIONTYPE, out activationType))
+            if (TryParseEnum<ActivationType>(result, attributes, ATTR_ACTIVATIONTYPE, out ActivationType activationType))
+            {
                 ActivationType = activationType;
+            }
 
             // scenario is optional
-            Scenario scenario;
-            if (TryParseEnum(result, attributes, ATTR_SCENARIO, out scenario))
+            if (TryParseEnum(result, attributes, ATTR_SCENARIO, out Scenario scenario))
+            {
                 Scenario = scenario;
+            }
 
             // duration is optional
-            Duration duration;
-            if (TryParseEnum(result, attributes, ATTR_DURATION, out duration))
+            if (TryParseEnum(result, attributes, ATTR_DURATION, out Duration duration))
+            {
                 Duration = duration;
+            }
 
             // hint-people is optional
-            var attrPeople = attributes.PopAttribute(ATTR_HINT_PEOPLE);
+            XAttribute attrPeople = attributes.PopAttribute(ATTR_HINT_PEOPLE);
             if (attrPeople != null)
+            {
                 People = attrPeople.Value;
+            }
 
             // displayTimestamp is optional
             if (SupportedFeatures.ToastDisplayTimestamp)
             {
-                var attrDisplayTimestamp = attributes.PopAttribute(ATTR_DISPLAYTIMESTAMP);
+                XAttribute attrDisplayTimestamp = attributes.PopAttribute(ATTR_DISPLAYTIMESTAMP);
                 if (attrDisplayTimestamp != null)
                 {
                     try
@@ -212,7 +219,9 @@ namespace NotificationsVisualizerLibrary.Model
             }
 
             else
+            {
                 result.AddError($"Invalid child {child.Name.LocalName} under toast element.", GetErrorPositionInfo(child));
+            }
         }
 
         internal override IEnumerable<AdaptiveChildElement> GetAllChildren()

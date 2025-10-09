@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Renderers;
+﻿using NotificationsVisualizerLibrary.Renderers;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -13,17 +8,17 @@ namespace NotificationsVisualizerLibrary.Controls
 {
     internal class CallingButton : Button
     {
-        private Grid _grid;
-        private TextBlock _textBlock;
-        private Image _image;
+        private readonly Grid _grid;
+        private readonly TextBlock _textBlock;
+        private readonly Image _image;
 
         public CallingButton()
         {
-            this.Width = 72;
-            this.HorizontalAlignment = HorizontalAlignment.Center;
-            this.VerticalAlignment = VerticalAlignment.Stretch;
-            this.Height = 72;
-            this.Background = new SolidColorBrush();
+            Width = 72;
+            HorizontalAlignment = HorizontalAlignment.Center;
+            VerticalAlignment = VerticalAlignment.Stretch;
+            Height = 72;
+            Background = new SolidColorBrush();
 
             _textBlock = new TextBlock()
             {
@@ -53,23 +48,17 @@ namespace NotificationsVisualizerLibrary.Controls
                 }
             };
 
-            this.Content = _grid;
+            Content = _grid;
         }
 
         public string Text
         {
-            set
-            {
-                _textBlock.Text = value;
-            }
+            set => _textBlock.Text = value;
         }
 
         public string ImageUri
         {
-            set
-            {
-                _image.Source = ImageHelper.GetBitmap(value);
-            }
+            set => _image.Source = ImageHelper.GetBitmap(value);
         }
 
         public bool IsAnswerButton
@@ -79,15 +68,14 @@ namespace NotificationsVisualizerLibrary.Controls
                 if (value)
                 {
                     Background = new SolidColorBrush((Color)Application.Current.Resources["SystemColorHighlightColor"]);
-                    this.Width = double.NaN;
-                    this.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    Width = double.NaN;
+                    HorizontalAlignment = HorizontalAlignment.Stretch;
                 }
-
                 else
                 {
-                    this.Background = new SolidColorBrush();
-                    this.Width = 72;
-                    this.HorizontalAlignment = HorizontalAlignment.Center;
+                    Background = new SolidColorBrush();
+                    Width = 72;
+                    HorizontalAlignment = HorizontalAlignment.Center;
                 }
             }
         }

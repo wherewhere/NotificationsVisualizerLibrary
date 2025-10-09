@@ -1,11 +1,9 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -13,17 +11,17 @@ namespace NotificationsVisualizerLibrary.Model
     [ObjectModelClass("TileBinding", NotificationType.Tile)]
     internal class AdaptiveBinding : AdaptiveParentElement
     {
-        protected static readonly string ATTR_BINDING_TEMPLATE = "template";
-        protected static readonly string ATTR_BINDING_FALLBACK = "fallback";
-        protected static readonly string ATTR_BINDING_LANG = "lang";
-        protected static readonly string ATTR_BINDING_BASEURI = "baseUri";
-        protected static readonly string ATTR_BINDING_ADDIMAGEQUERY = "addImageQuery";
-        protected static readonly string ATTR_BINDING_CONTENTID = "contentId";
+        protected const string ATTR_BINDING_TEMPLATE = "template";
+        protected const string ATTR_BINDING_FALLBACK = "fallback";
+        protected const string ATTR_BINDING_LANG = "lang";
+        protected const string ATTR_BINDING_BASEURI = "baseUri";
+        protected const string ATTR_BINDING_ADDIMAGEQUERY = "addImageQuery";
+        protected const string ATTR_BINDING_CONTENTID = "contentId";
 
 
-        private static readonly string ATTR_BINDING_BRANDING = "branding";
-        private static readonly string ATTR_BINDING_DISPLAY_NAME = "displayName";
-        private static readonly string ATTR_BINDING_HINT_OVERLAY = "hint-overlay";
+        private const string ATTR_BINDING_BRANDING = "branding";
+        private const string ATTR_BINDING_DISPLAY_NAME = "displayName";
+        private const string ATTR_BINDING_HINT_OVERLAY = "hint-overlay";
         private const string ATTR_BINDING_ARGUMENTS = "arguments";
         private const string ATTR_BINDING_HINTLOCK1 = "hint-lockDetailedStatus1";
         private const string ATTR_BINDING_HINTLOCK2 = "hint-lockDetailedStatus2";
@@ -50,23 +48,17 @@ namespace NotificationsVisualizerLibrary.Model
         private double? _hintOverlay = null;
         public double? HintOverlay
         {
-            get { return _hintOverlay; }
+            get => _hintOverlay;
             set
             {
                 if (value != null)
                 {
-                    if (value.Value < 0)
-                        _hintOverlay = 0;
-
-                    else if (value.Value > 100)
-                        _hintOverlay = 100;
-
-                    else
-                        _hintOverlay = value;
+                    _hintOverlay = value.Value < 0 ? (double?)0 : value.Value > 100 ? (double?)100 : value;
                 }
-
                 else
+                {
                     _hintOverlay = value;
+                }
             }
         }
 
@@ -108,22 +100,10 @@ namespace NotificationsVisualizerLibrary.Model
         }
 
         [ObjectModelProperty("HeroImage", null, NotificationType.Toast)]
-        public AdaptiveImage HeroImage
-        {
-            get
-            {
-                return GetImage(Placement.Hero);
-            }
-        }
+        public AdaptiveImage HeroImage => GetImage(Placement.Hero);
 
         [ObjectModelProperty("AppLogoOverride", null, NotificationType.Toast)]
-        public AdaptiveImage AppLogoOverride
-        {
-            get
-            {
-                return GetImage(Placement.AppLogoOverride);
-            }
-        }
+        public AdaptiveImage AppLogoOverride => GetImage(Placement.AppLogoOverride);
 
         private AdaptiveImage GetImage(Placement placement)
         {
@@ -131,13 +111,7 @@ namespace NotificationsVisualizerLibrary.Model
         }
 
         [ObjectModelProperty("Attribution", null, NotificationType.Toast)]
-        public AdaptiveTextField Attribution
-        {
-            get
-            {
-                return Container.Children.OfType<AdaptiveTextField>().FirstOrDefault(i => i.Placement == TextPlacement.Attribution);
-            }
-        }
+        public AdaptiveTextField Attribution => Container.Children.OfType<AdaptiveTextField>().FirstOrDefault(i => i.Placement == TextPlacement.Attribution);
 
         internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
         {
@@ -147,11 +121,11 @@ namespace NotificationsVisualizerLibrary.Model
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
-
-            
 
             ParseKnownAttributes(node, attributes, result, baseUri, addImageQuery);
 
@@ -161,7 +135,7 @@ namespace NotificationsVisualizerLibrary.Model
 
             HandleRemainingAttributes(attributes, result);
         }
-        
+
 
         protected virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string baseUri, bool addImageQuery)
         {
@@ -174,14 +148,13 @@ namespace NotificationsVisualizerLibrary.Model
             }
 
             // If template is unknown, stop there
-            Template template;
-            if (!TryParseEnum(attrTemplate.Value, out template))
+            if (!TryParseEnum(attrTemplate.Value, out Template template))
             {
                 result.AddWarning($"template attribute \"{attrTemplate.Value}\" is not supported.", GetErrorPositionInfo(attrTemplate));
                 throw new IncompleteElementException();
             }
 
-            this.Template = template;
+            Template = template;
 
             switch (Template)
             {
@@ -200,19 +173,23 @@ namespace NotificationsVisualizerLibrary.Model
             if (Context != NotificationType.Toast)
             {
                 // Branding is optional
-                Branding branding;
-                if (TryParseEnum(result, attributes, ATTR_BINDING_BRANDING, out branding, false)) // not case-sensitive
-                    this.Branding = branding;
+                if (TryParseEnum(result, attributes, ATTR_BINDING_BRANDING, out Branding branding, false)) // not case-sensitive
+                {
+                    Branding = branding;
+                }
 
                 // Display name is optional
                 XAttribute attrDisplayName = attributes.PopAttribute(ATTR_BINDING_DISPLAY_NAME, false); // not case-sensitive
                 if (attrDisplayName != null)
-                    this.DisplayName = attrDisplayName.Value;
+                {
+                    DisplayName = attrDisplayName.Value;
+                }
 
                 // hint-overlay is optional
-                double hintOverlay;
-                if (TryParse(result, attributes, ATTR_BINDING_HINT_OVERLAY, out hintOverlay))
-                    this.HintOverlay = hintOverlay;
+                if (TryParse(result, attributes, ATTR_BINDING_HINT_OVERLAY, out double hintOverlay))
+                {
+                    HintOverlay = hintOverlay;
+                }
             }
 
             if (Context == NotificationType.Tile)
@@ -222,7 +199,9 @@ namespace NotificationsVisualizerLibrary.Model
                     // attributes is optional
                     XAttribute attrArguments = attributes.PopAttribute(ATTR_ARGUMENTS);
                     if (attrArguments != null)
-                        this.Arguments = attrArguments.Value;
+                    {
+                        Arguments = attrArguments.Value;
+                    }
                 }
 
                 if (Template == Template.TileWide)
@@ -239,8 +218,7 @@ namespace NotificationsVisualizerLibrary.Model
                 if (attrBaseUri != null)
                 {
                     baseUri = attrBaseUri.Value; // Overwrite cascaded value if it was specified
-                    Uri uri;
-                    if (Uri.TryCreate(baseUri, UriKind.RelativeOrAbsolute, out uri))
+                    if (Uri.TryCreate(baseUri, UriKind.RelativeOrAbsolute, out Uri uri))
                     {
                         BaseUri = uri;
                     }
@@ -249,8 +227,7 @@ namespace NotificationsVisualizerLibrary.Model
 
             // AddImageQuery is optional
             {
-                bool val;
-                if (TryParse(result, attributes, ATTR_BINDING_ADDIMAGEQUERY, out val))
+                if (TryParse(result, attributes, ATTR_BINDING_ADDIMAGEQUERY, out bool val))
                 {
                     addImageQuery = val; // Overwrite cascaded value if it was specified
                     AddImageQuery = val;

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -12,9 +7,9 @@ namespace NotificationsVisualizerLibrary.Model
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal void SetProperty<T>(ref T storage, T value, [CallerMemberName]string name = "")
+        internal void SetProperty<T>(ref T storage, T value, [CallerMemberName] string name = "")
         {
-            if (object.Equals(storage, value))
+            if (Equals(storage, value))
             {
                 return;
             }
@@ -31,9 +26,9 @@ namespace NotificationsVisualizerLibrary.Model
 
     internal class BindableBaseHelper
     {
-        internal static void SetProperty<T>(object sender, ref T storage, T value, PropertyChangedEventHandler handler, [CallerMemberName]string name = "")
+        internal static void SetProperty<T>(object sender, ref T storage, T value, PropertyChangedEventHandler handler, [CallerMemberName] string name = "")
         {
-            if (object.Equals(storage, value))
+            if (Equals(storage, value))
             {
                 return;
             }

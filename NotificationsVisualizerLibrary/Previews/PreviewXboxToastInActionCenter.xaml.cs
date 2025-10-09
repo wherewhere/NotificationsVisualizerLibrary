@@ -5,20 +5,13 @@ using NotificationsVisualizerLibrary.Renderers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Data.Xml.Dom;
-using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+using Windows.UI.Xaml.Media.Imaging;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -26,17 +19,17 @@ namespace NotificationsVisualizerLibrary
 {
     public sealed partial class PreviewXboxToastInActionCenter : UserControl, IPreviewToast
     {
-        private static XmlTemplateParser _parser = new XmlTemplateParser();
+        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
 
-        private ObservableCollection<ListViewButton> _buttons = new ObservableCollection<ListViewButton>();
+        private readonly ObservableCollection<ListViewButton> _buttons = new ObservableCollection<ListViewButton>();
 
         public event EventHandler<PreviewToastNotificationActivatedEventArgs> ActivatedForeground, ActivatedBackground, ActivatedSystem, ActivatedProtocol;
 
         public PreviewXboxToastInActionCenter()
         {
-            this.InitializeComponent();
+            InitializeComponent();
 
-            CurrFeatureSet = FeatureSet.Get(this.DeviceFamily, this.OSBuildNumber);
+            CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);
 
             ListViewButtons.ItemsSource = _buttons;
         }
@@ -104,8 +97,6 @@ namespace NotificationsVisualizerLibrary
             _buttons.Clear();
             _buttons.Add(CreateButton("Launch", toastContent?.Launch, null, toastContent != null ? toastContent.ActivationType.GetValueOrDefault(ActivationType.Foreground) : ActivationType.Foreground, Scenario.Default));
 
-
-
             if (toastContent != null)
             {
                 _currLaunch = toastContent.Launch;
@@ -113,34 +104,28 @@ namespace NotificationsVisualizerLibrary
 
                 if (toastContent.Visual != null)
                 {
-                    var visual = toastContent.Visual;
+                    Visual visual = toastContent.Visual;
 
-                    AdaptiveBinding binding;
-
-                    if (toastContent.Context == NotificationType.Toast)
-                        binding = visual.Bindings.FirstOrDefault();
-
-                    else
-                        binding = visual.Bindings.FirstOrDefault(i => i.Template == Model.Enums.Template.ToastGeneric);
-
+                    AdaptiveBinding binding = toastContent.Context == NotificationType.Toast
+                        ? visual.Bindings.FirstOrDefault()
+                        : visual.Bindings.FirstOrDefault(i => i.Template == Model.Enums.Template.ToastGeneric);
                     if (binding != null)
                     {
                         HasContent = true;
 
-                        var container = binding.Container;
+                        AdaptiveContainer container = binding.Container;
 
-
-                        var texts = container.Children.OfType<AdaptiveTextField>().ToList();
+                        List<AdaptiveTextField> texts = container.Children.OfType<AdaptiveTextField>().ToList();
                         List<AdaptiveImage> appLogoOverrides = null;
                         List<AdaptiveImage> heroImages = new List<AdaptiveImage>();
-                        var attributionTexts = container.Children.OfType<AdaptiveTextField>().Where(i => i.Placement == Model.Enums.TextPlacement.Attribution).ToList();
+                        List<AdaptiveTextField> attributionTexts = container.Children.OfType<AdaptiveTextField>().Where(i => i.Placement == Model.Enums.TextPlacement.Attribution).ToList();
 
                         appLogoOverrides = new List<AdaptiveImage>();
 
                         // First pull out images with placements and attribution text
                         for (int i = 0; i < container.Children.Count; i++)
                         {
-                            var child = container.Children[i];
+                            AdaptiveChildElement child = container.Children[i];
 
                             if (child is AdaptiveImage)
                             {
@@ -161,7 +146,6 @@ namespace NotificationsVisualizerLibrary
                                         break;
                                 }
                             }
-
                             else if (child is AdaptiveTextField)
                             {
                                 AdaptiveTextField txt = child as AdaptiveTextField;
@@ -180,20 +164,18 @@ namespace NotificationsVisualizerLibrary
                             ImageHero.Visibility = Visibility.Visible;
                             ImageHeroBrush.ImageSource = ImageHelper.GetBitmap(heroImages.First().Src);
                         }
-
                         else
                         {
                             ImageHero.Visibility = Visibility.Collapsed;
                             ImageHeroBrush.ImageSource = null;
                         }
 
-
                         texts = new List<AdaptiveTextField>();
 
                         // Pull out all texts
                         for (int i = 0; i < container.Children.Count; i++)
                         {
-                            var child = container.Children[i];
+                            AdaptiveChildElement child = container.Children[i];
 
                             if (child is AdaptiveTextField && (child as AdaptiveTextField).Placement == Model.Enums.TextPlacement.Inline)
                             {
@@ -203,17 +185,17 @@ namespace NotificationsVisualizerLibrary
                             }
                         }
 
-                        var titleText = texts.ElementAtOrDefault(0);
+                        AdaptiveTextField titleText = texts.ElementAtOrDefault(0);
                         if (titleText != null)
                         {
                             TextBlockTitle.Text = titleText.Text;
 
-                            var bodyTextLine1 = texts.ElementAtOrDefault(1);
+                            AdaptiveTextField bodyTextLine1 = texts.ElementAtOrDefault(1);
                             if (bodyTextLine1 != null)
                             {
                                 TextBlockBody.Text = bodyTextLine1.Text;
 
-                                var bodyTextLine2 = texts.ElementAtOrDefault(2);
+                                AdaptiveTextField bodyTextLine2 = texts.ElementAtOrDefault(2);
                                 if (bodyTextLine2 != null)
                                 {
                                     TextBlockBody2.Text = bodyTextLine2.Text;
@@ -222,11 +204,11 @@ namespace NotificationsVisualizerLibrary
 
                                 TextBlockBody.Visibility = Visibility.Visible;
                             }
-
                             else
+                            {
                                 TextBlockBody.Visibility = Visibility.Collapsed;
+                            }
                         }
-
                         else
                         {
                             TextBlockTitle.Text = Properties.DisplayName;
@@ -234,25 +216,25 @@ namespace NotificationsVisualizerLibrary
                             TextBlockBody.Visibility = Visibility.Visible;
                         }
 
-                        var images = container.Children.OfType<AdaptiveImage>().ToList();
-
+                        List<AdaptiveImage> images = container.Children.OfType<AdaptiveImage>().ToList();
 
                         if (appLogoOverrides == null)
+                        {
                             appLogoOverrides = images.Where(i => i.Placement == Model.Enums.Placement.AppLogoOverride).ToList();
+                        }
 
-                        var appLogoOverride = appLogoOverrides.FirstOrDefault();
+                        AdaptiveImage appLogoOverride = appLogoOverrides.FirstOrDefault();
                         if (appLogoOverride != null)
                         {
                             DefaultImageAppLogo.Visibility = Visibility.Collapsed;
 
-                            var source = ImageHelper.GetBitmap(appLogoOverride.Src);
+                            BitmapImage source = ImageHelper.GetBitmap(appLogoOverride.Src);
 
                             if (appLogoOverride.HintCrop == Model.Enums.HintCrop.Circle)
                             {
                                 CircleImageAppLogo.Source = source;
                                 CircleImageAppLogo.Visibility = Visibility.Visible;
                             }
-
                             else
                             {
                                 ImageAppLogo.Source = source;
@@ -260,9 +242,9 @@ namespace NotificationsVisualizerLibrary
                             }
                         }
 
-                        foreach (var image in images.Where(i => i.Placement == Model.Enums.Placement.Inline))
+                        foreach (AdaptiveImage image in images.Where(i => i.Placement == Model.Enums.Placement.Inline))
                         {
-                            var uiImage = new Image()
+                            Image uiImage = new Image()
                             {
                                 Source = ImageHelper.GetBitmap(image.Src),
                                 MaxHeight = 100,
@@ -283,7 +265,6 @@ namespace NotificationsVisualizerLibrary
                                 TextBlockAttributionSecondPart.Visibility = Visibility.Visible;
                                 TextBlockAttributionSecondPart.Text = attributionTexts.First().Text;
                             }
-
                             else
                             {
                                 TextBlockAttributionSeparationDot.Visibility = Visibility.Collapsed;
@@ -296,7 +277,7 @@ namespace NotificationsVisualizerLibrary
 
                 if (toastContent.Actions != null)
                 {
-                    var actions = toastContent.Actions;
+                    Actions actions = toastContent.Actions;
 
                     if (actions.HintSystemCommands == Model.Enums.HintSystemCommands.SnoozeAndDismiss)
                     {
@@ -342,7 +323,6 @@ namespace NotificationsVisualizerLibrary
                         AddButton(CreateButton("Snooze", "snooze", null, ActivationType.System, toastContent.Scenario));
                         AddButton(CreateButton("Dismiss", "dismiss", null, ActivationType.System, toastContent.Scenario));
                     }
-
                     else
                     {
                         List<Model.BaseElements.Action> actionElements = actions.ActionElements.ToList();
@@ -353,19 +333,17 @@ namespace NotificationsVisualizerLibrary
                         }
 
                         // Initialize inputs
-                        foreach (var i in actions.Inputs)
+                        foreach (Input i in actions.Inputs)
                         {
                             ListViewButton button;
 
                             switch (i.Type)
                             {
-                                case Model.BaseElements.InputType.Text:
-
+                                case InputType.Text:
                                     button = new TextBoxButton(i);
                                     break;
 
-                                case Model.BaseElements.InputType.Selection:
-
+                                case InputType.Selection:
                                     button = new SelectionButton(i);
                                     break;
 
@@ -377,7 +355,7 @@ namespace NotificationsVisualizerLibrary
                         }
 
                         // Initialize buttons
-                        foreach (var a in actionElements)
+                        foreach (Model.BaseElements.Action a in actionElements)
                         {
                             ListViewButton uiButton = CreateButton(a.Content, a.Arguments, a.ImageUri, a.ActivationType, toastContent.Scenario);
 
@@ -402,8 +380,8 @@ namespace NotificationsVisualizerLibrary
             private string _content;
             public string Content
             {
-                get { return _content; }
-                set { SetProperty(ref _content, value); }
+                get => _content;
+                set => SetProperty(ref _content, value);
             }
 
             public UIElement Icon { get; set; }
@@ -446,7 +424,7 @@ namespace NotificationsVisualizerLibrary
             /// </summary>
             public string Value
             {
-                get { return _value; }
+                get => _value;
                 private set
                 {
                     _value = value;
@@ -477,22 +455,24 @@ namespace NotificationsVisualizerLibrary
                     Margin = new Thickness(0, 12, 0, 0)
                 };
 
-                Flyout flyout = new Flyout();
-                flyout.Content = new StackPanel()
+                Flyout flyout = new Flyout
                 {
-                    Width = 300,
-                    Children =
+                    Content = new StackPanel()
                     {
-                        textBox,
-                        buttonEnter
+                        Width = 300,
+                        Children =
+                        {
+                            textBox,
+                            buttonEnter
+                        }
                     }
                 };
 
-                System.Action actionEnter = delegate
+                void actionEnter()
                 {
                     Value = textBox.Text;
                     flyout.Hide();
-                };
+                }
 
                 buttonEnter.Click += delegate
                 {
@@ -522,7 +502,7 @@ namespace NotificationsVisualizerLibrary
 
                 if (input.DefaultInput != null)
                 {
-                    var defaultSelection = input.Children.FirstOrDefault(i => i.Id == input.DefaultInput);
+                    Selection defaultSelection = input.Children.FirstOrDefault(i => i.Id == input.DefaultInput);
                     SelectItem(defaultSelection);
                 }
 
@@ -550,7 +530,7 @@ namespace NotificationsVisualizerLibrary
             /// </summary>
             public string Value
             {
-                get { return _value; }
+                get => _value;
                 private set
                 {
                     _value = value;
@@ -577,13 +557,15 @@ namespace NotificationsVisualizerLibrary
                     IsItemClickEnabled = true
                 };
 
-                Flyout flyout = new Flyout();
-                flyout.Content = new StackPanel()
+                Flyout flyout = new Flyout
                 {
-                    Width = 300,
-                    Children =
+                    Content = new StackPanel()
                     {
-                        listView
+                        Width = 300,
+                        Children =
+                        {
+                            listView
+                        }
                     }
                 };
 
@@ -615,14 +597,10 @@ namespace NotificationsVisualizerLibrary
                 }
             }
 
-            ListViewButton b = new ListViewButton()
+            ListViewButton b = new ListViewButton
             {
-                Content = content
-            };
-
-            b.Action = delegate
-            {
-                TriggerActivation(arguments, activationType);
+                Content = content,
+                Action = _ => TriggerActivation(arguments, activationType)
             };
 
             return b;
@@ -643,30 +621,28 @@ namespace NotificationsVisualizerLibrary
         private void TriggerActivation(string arguments, ActivationType activationType)
         {
             if (arguments == null)
+            {
                 arguments = "";
+            }
 
             PreviewToastNotificationActivatedEventArgs args = new PreviewToastNotificationActivatedEventArgs(arguments, GetCurrentUserInput());
 
             switch (activationType)
             {
                 case ActivationType.Background:
-                    if (ActivatedBackground != null)
-                        ActivatedBackground(this, args);
+                    ActivatedBackground?.Invoke(this, args);
                     break;
 
                 case ActivationType.Foreground:
-                    if (ActivatedForeground != null)
-                        ActivatedForeground(this, args);
+                    ActivatedForeground?.Invoke(this, args);
                     break;
 
                 case ActivationType.Protocol:
-                    if (ActivatedProtocol != null)
-                        ActivatedProtocol(this, args);
+                    ActivatedProtocol?.Invoke(this, args);
                     break;
 
                 case ActivationType.System:
-                    if (ActivatedSystem != null)
-                        ActivatedSystem(this, args);
+                    ActivatedSystem?.Invoke(this, args);
                     break;
             }
         }
@@ -683,25 +659,35 @@ namespace NotificationsVisualizerLibrary
             return answer;
         }
 
-        private static readonly DependencyProperty PropertiesProperty = DependencyProperty.Register("Properties", typeof(PreviewToastProperties), typeof(PreviewXboxToastInActionCenter), new PropertyMetadata(new PreviewToastProperties()));
+        private static readonly DependencyProperty PropertiesProperty =
+            DependencyProperty.Register(
+                nameof(Properties),
+                typeof(PreviewToastProperties),
+                typeof(PreviewXboxToastInActionCenter),
+                new PropertyMetadata(new PreviewToastProperties()));
 
         public PreviewToastProperties Properties
         {
-            get { return GetValue(PropertiesProperty) as PreviewToastProperties; }
-            set { SetValue(PropertiesProperty, value); }
+            get => GetValue(PropertiesProperty) as PreviewToastProperties;
+            set => SetValue(PropertiesProperty, value);
         }
 
         #region DeviceFamily
 
-        private static readonly DependencyProperty DeviceFamilyProperty = DependencyProperty.Register("DeviceFamily", typeof(DeviceFamily), typeof(PreviewXboxToastInActionCenter), new PropertyMetadata(FeatureSet.GetCurrentDeviceFamily(), OnDeviceFamilyChanged));
+        private static readonly DependencyProperty DeviceFamilyProperty =
+            DependencyProperty.Register(
+                nameof(DeviceFamily),
+                typeof(DeviceFamily),
+                typeof(PreviewXboxToastInActionCenter),
+                new PropertyMetadata(FeatureSet.GetCurrentDeviceFamily(), OnDeviceFamilyChanged));
 
         /// <summary>
         /// Gets or sets the current device family, which impacts what features are available on the tiles.
         /// </summary>
         public DeviceFamily DeviceFamily
         {
-            get { return (DeviceFamily)GetValue(DeviceFamilyProperty); }
-            set { SetValue(DeviceFamilyProperty, value); }
+            get => (DeviceFamily)GetValue(DeviceFamilyProperty);
+            set => SetValue(DeviceFamilyProperty, value);
         }
 
         private static void OnDeviceFamilyChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -717,15 +703,20 @@ namespace NotificationsVisualizerLibrary
 
         #endregion
 
-        private static readonly DependencyProperty OSBuildNumberProperty = DependencyProperty.Register("OSBuildNumber", typeof(Version), typeof(PreviewXboxToast), new PropertyMetadata(FeatureSet.GetCurrentOSBuildNumber(), OnOSBuildNumberChanged));
+        private static readonly DependencyProperty OSBuildNumberProperty =
+            DependencyProperty.Register(
+                nameof(OSBuildNumber),
+                typeof(int),
+                typeof(PreviewXboxToast),
+                new PropertyMetadata(FeatureSet.GetCurrentOSBuildNumber(), OnOSBuildNumberChanged));
 
         /// <summary>
         /// Gets or sets the current OS version, which impacts what features and bug fixes are available.
         /// </summary>
         public int OSBuildNumber
         {
-            get { return (int)GetValue(OSBuildNumberProperty); }
-            set { SetValue(OSBuildNumberProperty, value); }
+            get => (int)GetValue(OSBuildNumberProperty);
+            set => SetValue(OSBuildNumberProperty, value);
         }
 
         private static void OnOSBuildNumberChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -742,9 +733,9 @@ namespace NotificationsVisualizerLibrary
 
         private void UpdateFeatureSet()
         {
-            CurrFeatureSet = FeatureSet.Get(this.DeviceFamily, this.OSBuildNumber);
+            CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);
 
-            this.ReInitializeContent();
+            ReInitializeContent();
         }
 
         public ParseResult Initialize(XmlDocument content)
@@ -759,8 +750,7 @@ namespace NotificationsVisualizerLibrary
 
         private void ListViewButtons_ItemClick(object sender, ItemClickEventArgs e)
         {
-            var item = e.ClickedItem as ListViewButton;
-            if (item != null && item.Action != null)
+            if (e.ClickedItem is ListViewButton item && item.Action != null)
             {
                 item.Action(e.OriginalSource as FrameworkElement);
             }

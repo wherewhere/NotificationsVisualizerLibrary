@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Parsers;
-using Windows.Data.Xml.Dom;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using Windows.UI.Notifications;
 
 namespace NotificationsVisualizerLibrary
@@ -14,8 +8,8 @@ namespace NotificationsVisualizerLibrary
     /// </summary>
     public sealed class PreviewTileUpdater
     {
-        private static XmlTemplateParser _parser = new XmlTemplateParser();
-        private PreviewTile _previewTile;
+        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
+        private readonly PreviewTile _previewTile;
 
         internal PreviewTileUpdater(PreviewTile previewTile)
         {

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Parsers;
+using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -15,12 +12,12 @@ namespace NotificationsVisualizerLibrary.Model
         public AdaptiveTextField(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
 
         private const string ATTR_TEXT_ID = "id";
-        private static readonly string ATTR_TEXT_LANG = "lang";
-        private static readonly string ATTR_TEXT_HINT_STYLE = "hint-style";
-        private static readonly string ATTR_TEXT_HINT_WRAP = "hint-wrap";
-        private static readonly string ATTR_TEXT_HINT_MAX_LINES = "hint-maxLines";
-        private static readonly string ATTR_TEXT_HINT_MIN_LINES = "hint-minLines";
-        private static readonly string ATTR_TEXT_HINT_ALIGN = "hint-align";
+        private const string ATTR_TEXT_LANG = "lang";
+        private const string ATTR_TEXT_HINT_STYLE = "hint-style";
+        private const string ATTR_TEXT_HINT_WRAP = "hint-wrap";
+        private const string ATTR_TEXT_HINT_MAX_LINES = "hint-maxLines";
+        private const string ATTR_TEXT_HINT_MIN_LINES = "hint-minLines";
+        private const string ATTR_TEXT_HINT_ALIGN = "hint-align";
         private const string ATTR_TEXT_PLACEMENT = "placement";
 
         public string Id { get; set; }
@@ -40,23 +37,13 @@ namespace NotificationsVisualizerLibrary.Model
         {
             get
             {
-                if (BindingText != null)
-                {
-                    return null;
-                }
-
-                if (Text == null)
-                {
-                    return null;
-                }
-
-                return new ObjectModelString(Text);
+                return BindingText != null ? null : Text == null ? null : (IObjectModelValue)new ObjectModelString(Text);
             }
         }
 
         [ObjectModelProperty("Language")]
         public string Language { get; set; }
-        
+
         public TextPlacement Placement { get; set; }
 
         [ObjectModelProperty("HintStyle", HintStyle.Default)]
@@ -69,35 +56,16 @@ namespace NotificationsVisualizerLibrary.Model
         [ObjectModelProperty("HintMaxLines")]
         public int? HintMaxLines
         {
-            get { return _hintMaxLines; }
-
-            set
-            {
-                if (value != null && value.Value < 1)
-                    _hintMaxLines = 1;
-
-                else
-                    _hintMaxLines = value;
-            }
+            get => _hintMaxLines;
+            set => _hintMaxLines = value != null && value.Value < 1 ? 1 : value;
         }
 
         private int? _hintMinLines;
         [ObjectModelProperty("HintMinLines")]
         public int? HintMinLines
         {
-            get { return _hintMinLines; }
-
-            set
-            {
-                if (value < 1)
-                    _hintMinLines = 1;
-
-                else if (value > 10)
-                    _hintMinLines = 10;
-
-                else
-                    _hintMinLines = value;
-            }
+            get => _hintMinLines;
+            set => _hintMinLines = value < 1 ? 1 : value > 10 ? 10 : value;
         }
 
         [ObjectModelProperty("HintAlign", HintAlign.Default)]
@@ -109,8 +77,7 @@ namespace NotificationsVisualizerLibrary.Model
             // Binding only supported on top level toast elements
             if (isBindingRootLevel && Context == NotificationType.Toast && SupportedFeatures.ToastTextDataBinding)
             {
-                string bindingText;
-                TryProcessBindableValue(result, node.Value, out bindingText, (val) =>
+                TryProcessBindableValue(result, node.Value, out string bindingText, (val) =>
                 {
                     Text = val;
                 });
@@ -134,33 +101,38 @@ namespace NotificationsVisualizerLibrary.Model
             if (Context != NotificationType.Toast || SupportedFeatures.AdaptiveToasts || !isBindingRootLevel)
             {
                 // hint-max-lines is optional
-                int hintMaxLines;
-                if (TryParse(result, attributes, ATTR_TEXT_HINT_MAX_LINES, out hintMaxLines))
-                    this.HintMaxLines = hintMaxLines;
+                if (TryParse(result, attributes, ATTR_TEXT_HINT_MAX_LINES, out int hintMaxLines))
+                {
+                    HintMaxLines = hintMaxLines;
+                }
             }
 
             // These features are supported on non-toasts, and group/subgroups
             if (Context != NotificationType.Toast || !isBindingRootLevel)
             {
                 // hint-align is optional
-                HintAlign hintAlign;
-                if (TryParseEnum(result, attributes, ATTR_TEXT_HINT_ALIGN, out hintAlign))
-                    this.HintAlign = hintAlign;
+                if (TryParseEnum(result, attributes, ATTR_TEXT_HINT_ALIGN, out HintAlign hintAlign))
+                {
+                    HintAlign = hintAlign;
+                }
 
                 // hint-min-lines is optional
-                int hintMinLines;
-                if (TryParse(result, attributes, ATTR_TEXT_HINT_MIN_LINES, out hintMinLines))
-                    this.HintMinLines = hintMinLines;
+                if (TryParse(result, attributes, ATTR_TEXT_HINT_MIN_LINES, out int hintMinLines))
+                {
+                    HintMinLines = hintMinLines;
+                }
 
                 // hint-style is optional
-                HintStyle hintStyle;
-                if (TryParseEnum(result, attributes, ATTR_TEXT_HINT_STYLE, out hintStyle))
-                    this.HintStyle = hintStyle;
+                if (TryParseEnum(result, attributes, ATTR_TEXT_HINT_STYLE, out HintStyle hintStyle))
+                {
+                    HintStyle = hintStyle;
+                }
 
                 // hint-wrap is optional
-                bool hintWrap;
-                if (TryParse(result, attributes, ATTR_TEXT_HINT_WRAP, out hintWrap))
-                    this.HintWrap = hintWrap;
+                if (TryParse(result, attributes, ATTR_TEXT_HINT_WRAP, out bool hintWrap))
+                {
+                    HintWrap = hintWrap;
+                }
             }
 
             if (Context == NotificationType.Tile)
@@ -168,9 +140,10 @@ namespace NotificationsVisualizerLibrary.Model
                 Id = attributes.PopAttributeValue(ATTR_TEXT_ID);
             }
 
-            TextPlacement placement;
-            if (TryParseEnum(result, attributes, ATTR_TEXT_PLACEMENT, out placement))
-                this.Placement = placement;
+            if (TryParseEnum(result, attributes, ATTR_TEXT_PLACEMENT, out TextPlacement placement))
+            {
+                Placement = placement;
+            }
         }
 
         protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
@@ -188,7 +161,9 @@ namespace NotificationsVisualizerLibrary.Model
                     case NotificationType.Toast:
 
                         if (SupportedFeatures.ToastAttribution)
+                        {
                             return new TextPlacement[] { TextPlacement.Inline, TextPlacement.Attribution };
+                        }
 
                         return new TextPlacement[] { TextPlacement.Inline };
 

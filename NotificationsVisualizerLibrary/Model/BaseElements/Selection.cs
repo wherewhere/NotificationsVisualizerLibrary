@@ -1,10 +1,6 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -47,8 +43,8 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 throw new IncompleteElementException();
             }
 
-            this.Id = attrId.Value;
-            this.Content = attrContent.Value;
+            Id = attrId.Value;
+            Content = attrContent.Value;
         }
 
         protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
@@ -63,7 +59,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         public override ObjectModelObject ConvertToObject()
         {
-            var obj = base.ConvertToObject();
+            ObjectModelObject obj = base.ConvertToObject();
             obj.ConstructorValues.Add(new ObjectModelString(Id));
             obj.ConstructorValues.Add(new ObjectModelString(Content));
             return obj;

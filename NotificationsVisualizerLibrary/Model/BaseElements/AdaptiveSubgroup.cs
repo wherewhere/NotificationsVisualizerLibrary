@@ -1,8 +1,7 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -11,8 +10,8 @@ namespace NotificationsVisualizerLibrary.Model
     {
         public AdaptiveSubgroup(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
 
-        private static readonly string ATTR_SUBGROUP_HINT_WEIGHT = "hint-weight";
-        private static readonly string ATTR_SUBGROUP_HINT_TEXT_STACKING = "hint-textStacking";
+        private const string ATTR_SUBGROUP_HINT_WEIGHT = "hint-weight";
+        private const string ATTR_SUBGROUP_HINT_TEXT_STACKING = "hint-textStacking";
         public const string ATTR_ACTIONID = "actionId";
 
         internal const int WEIGHT_AUTO = int.MinValue;
@@ -24,20 +23,19 @@ namespace NotificationsVisualizerLibrary.Model
         [ObjectModelProperty("HintWeight")]
         public int? HintWeight
         {
-            get { return _hintWeight; }
+            get => _hintWeight;
             set
             {
-                if (value == null)
-                    _hintWeight = null;
+                _hintWeight = value == null
+                    ? null
 
-                //else if (value.Value < 0)
-                //    _hintWeight = 0;
+                    //else if (value.Value < 0)
+                    //    _hintWeight = 0;
 
-                //else if (value.Value > 100)
-                //    _hintWeight = 100;
+                    //else if (value.Value > 100)
+                    //    _hintWeight = 100;
 
-                else
-                    _hintWeight = value;
+                    : value;
             }
         }
 
@@ -79,8 +77,9 @@ namespace NotificationsVisualizerLibrary.Model
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
-            
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
 
@@ -110,10 +109,14 @@ namespace NotificationsVisualizerLibrary.Model
                     text.Parse(result, child, false);
 
                     if (!result.IsOkForRender())
+                    {
                         throw new IncompleteElementException();
+                    }
 
                     if (text != null)
-                        this.Add(text);
+                    {
+                        Add(text);
+                    }
 
                     break;
 
@@ -125,7 +128,9 @@ namespace NotificationsVisualizerLibrary.Model
                     image.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
+                    {
                         throw new IncompleteElementException();
+                    }
 
                     if (image != null)
                     {
@@ -134,7 +139,7 @@ namespace NotificationsVisualizerLibrary.Model
                             result.AddErrorButRenderAllowed("You cannot place a non-inline image element inside a subgroup.", GetErrorPositionInfo(child));
                         }
 
-                        this.Add(image);
+                        Add(image);
                     }
 
                     break;
@@ -153,24 +158,28 @@ namespace NotificationsVisualizerLibrary.Model
             ParseHintWeight(attributes, result);
 
             // hint-textStacking is optional
-            HintTextStacking hintTextStacking;
-            if (TryParseEnum(result, attributes, ATTR_SUBGROUP_HINT_TEXT_STACKING, out hintTextStacking))
-                this.HintTextStacking = hintTextStacking;
+            if (TryParseEnum(result, attributes, ATTR_SUBGROUP_HINT_TEXT_STACKING, out HintTextStacking hintTextStacking))
+            {
+                HintTextStacking = hintTextStacking;
+            }
 
             if (Context != NotificationType.Tile && Context != NotificationType.Toast)
             {
                 // actionId is optional
-                var attrActionId = attributes.PopAttribute(ATTR_ACTIONID);
+                XAttribute attrActionId = attributes.PopAttribute(ATTR_ACTIONID);
                 if (attrActionId != null)
-                    this.ActionId = attrActionId.Value;
+                {
+                    ActionId = attrActionId.Value;
+                }
             }
         }
 
         private void ParseHintWeight(AttributesHelper attributes, ParseResult result)
         {
-            int hintWeight;
-            if (TryParse(result, attributes, ATTR_SUBGROUP_HINT_WEIGHT, out hintWeight))
-                this.HintWeight = hintWeight;
+            if (TryParse(result, attributes, ATTR_SUBGROUP_HINT_WEIGHT, out int hintWeight))
+            {
+                HintWeight = hintWeight;
+            }
         }
     }
 }

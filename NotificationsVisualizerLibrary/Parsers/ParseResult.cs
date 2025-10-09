@@ -1,10 +1,7 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Model;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace NotificationsVisualizerLibrary.Parsers
 {
@@ -75,20 +72,24 @@ namespace NotificationsVisualizerLibrary.Parsers
             if (error.Type == ParseErrorType.Error)
             {
                 for (int i = 0; i < Errors.Count; i++)
+                {
                     if (Errors[i].Type != ParseErrorType.Error)
                     {
                         Errors.Insert(i, error);
                         return;
                     }
+                }
             }
             else if (error.Type == ParseErrorType.ErrorButRenderAllowed)
             {
                 for (int i = 0; i < Errors.Count; i++)
+                {
                     if (Errors[i].Type == ParseErrorType.Warning)
                     {
                         Errors.Insert(i, error);
                         return;
                     }
+                }
             }
 
             Errors.Add(error);
@@ -100,15 +101,9 @@ namespace NotificationsVisualizerLibrary.Parsers
         /// <returns></returns>
         public string GenerateCSharpCode()
         {
-            if (Toast != null)
-            {
-                return WrapToastForCSharp(Toast.ConvertToObject().ToString());
-            }
-            if (Tile != null)
-            {
-                return WrapTileForCSharp(Tile.ConvertToObject().ToString());
-            }
-            return "Not implemented";
+            return Toast != null
+                ? WrapToastForCSharp(Toast.ConvertToObject().ToString())
+                : Tile != null ? WrapTileForCSharp(Tile.ConvertToObject().ToString()) : "Not implemented";
         }
 
         private static string WrapTileForCSharp(string original)
@@ -127,17 +122,13 @@ namespace NotificationsVisualizerLibrary.Parsers
         /// <returns></returns>
         public string GenerateJavascriptCode()
         {
-            if (Toast != null)
-            {
-                return IncludeJsNamespaceDeclaration(
-                    Toast.ConvertToObject().ToJavascriptString());
-            }
-            if (Tile != null)
-            {
-                return IncludeJsNamespaceDeclaration(
-                    Tile.ConvertToObject().ToJavascriptString());
-            }
-            return "Not implemented";
+            return Toast != null
+                ? IncludeJsNamespaceDeclaration(
+                    Toast.ConvertToObject().ToJavascriptString())
+                : Tile != null
+                ? IncludeJsNamespaceDeclaration(
+                    Tile.ConvertToObject().ToJavascriptString())
+                : "Not implemented";
         }
 
         /// <summary>
@@ -146,15 +137,9 @@ namespace NotificationsVisualizerLibrary.Parsers
         /// <returns></returns>
         public string GenerateCPlusPlusCode()
         {
-            if (Toast != null)
-            {
-                return Toast.ConvertToObject().ToCPlusPlusString();
-            }
-            if (Tile != null)
-            {
-                return Tile.ConvertToObject().ToCPlusPlusString();
-            }
-            return "Not implemented";
+            return Toast != null
+                ? Toast.ConvertToObject().ToCPlusPlusString()
+                : Tile != null ? Tile.ConvertToObject().ToCPlusPlusString() : "Not implemented";
         }
 
         private string IncludeJsNamespaceDeclaration(string code)

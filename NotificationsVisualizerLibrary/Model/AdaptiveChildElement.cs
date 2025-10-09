@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Model.BaseElements;
+﻿using NotificationsVisualizerLibrary.Model.BaseElements;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -20,17 +15,23 @@ namespace NotificationsVisualizerLibrary.Model
         internal virtual AdaptiveChildElement GetNextElementBelowThisOne()
         {
             if (Parent == null)
+            {
                 return null;
+            }
 
             bool foundMyself = false;
 
-            foreach (var child in Parent.GetAllChildren())
+            foreach (AdaptiveChildElement child in Parent.GetAllChildren())
             {
                 if (foundMyself)
+                {
                     return child;
+                }
 
                 if (child == this)
+                {
                     foundMyself = true; // we'll return the next child
+                }
             }
 
             // There was no next child, so go to the parent and have the parent return its next element

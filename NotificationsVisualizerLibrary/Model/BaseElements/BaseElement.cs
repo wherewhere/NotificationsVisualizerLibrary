@@ -1,12 +1,10 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -24,11 +22,11 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         internal bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct, IConvertible
         {
-            var supportedEnums = GetSupportedEnums<TEnum>();
+            Array supportedEnums = GetSupportedEnums<TEnum>();
 
             if (text != null)
             {
-                foreach (var e in supportedEnums)
+                foreach (object e in supportedEnums)
                 {
                     string xmlValue = GetXmlValueFromEnum((Enum)e);
                     if (text.Equals(xmlValue, StringComparison.CurrentCultureIgnoreCase))
@@ -39,9 +37,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 }
             }
 
-            
-
-            answer = default(TEnum);
+            answer = default;
             return false;
         }
 
@@ -49,10 +45,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         {
             XmlValueAttribute xmlValueAttribute = enumValue.GetType().GetTypeInfo().GetDeclaredField(enumValue.ToString()).GetCustomAttribute<XmlValueAttribute>();
 
-            if (xmlValueAttribute != null)
-                return xmlValueAttribute.XmlValue;
-
-            return enumValue.ToString();
+            return xmlValueAttribute != null ? xmlValueAttribute.XmlValue : enumValue.ToString();
         }
 
         internal bool TryParseEnum<TEnum>(ParseResult result, AttributesHelper attributes, string attributeName, out TEnum answer, bool caseSensitive = true) where TEnum : struct, IConvertible
@@ -66,29 +59,34 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 if (attr.Value != null)
                 {
                     if (TryParseEnum(attr.Value, out answer))
+                    {
                         return true;
-                    
+                    }
+
                     // Couldn't find matching enum
                     result.AddWarning($@"Unknown value ""{attr.Value}"" on {attributeName} attribute", GetErrorPositionInfo(attr));
 
                     if (TryGetUnknownEnum(out answer))
+                    {
                         return true;
+                    }
                 }
-
                 // Attribute doesn't have a value
                 else
+                {
                     result.AddWarning($@"Attribute {attributeName} has no value specified", GetErrorPositionInfo(attr));
+                }
             }
 
             // Attribute isn't found, no warning
-            answer = default(TEnum);
+            answer = default;
             return false;
         }
 
         private static bool TryGetUnknownEnum<TEnum>(out TEnum answer)
         {
             // If there's an Unknown enum value, use that
-            foreach (var e in Enum.GetValues(typeof(TEnum)))
+            foreach (object e in Enum.GetValues(typeof(TEnum)))
             {
                 string xmlValue = GetXmlValueFromEnum((Enum)e);
                 if (xmlValue.Equals("unknown", StringComparison.CurrentCultureIgnoreCase))
@@ -98,7 +96,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 }
             }
 
-            answer = default(TEnum);
+            answer = default;
             return false;
         }
 
@@ -107,7 +105,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             public string DataName { get; private set; }
             public Action<string> OnSet { get; private set; }
             private ParseError _currentError;
-            private ParseResult _result;
+            private readonly ParseResult _result;
 
             public ConfiguredBinding(ParseResult result, string dataName, Action<string> onSet)
             {
@@ -151,7 +149,6 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                     {
                         return;
                     }
-
                     else if (_currentError != null)
                     {
                         _result.Errors.Remove(_currentError);
@@ -163,7 +160,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        private List<ConfiguredBinding> _bindings = new List<ConfiguredBinding>();
+        private readonly List<ConfiguredBinding> _bindings = new List<ConfiguredBinding>();
 
         internal void SetBinding(ParseResult result, string dataName, Action<string> onSet)
         {
@@ -225,10 +222,9 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         protected void ApplyDataBindingToThisInstance(DataBindingValues dataBinding)
         {
-            foreach (var binding in _bindings)
+            foreach (ConfiguredBinding binding in _bindings)
             {
-                string value;
-                if (dataBinding.TryGetValue(binding.DataName, out value))
+                if (dataBinding.TryGetValue(binding.DataName, out string value))
                 {
                     binding.Invoke(value);
                 }

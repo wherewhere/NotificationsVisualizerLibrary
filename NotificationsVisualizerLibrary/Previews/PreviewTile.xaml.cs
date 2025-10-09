@@ -1,32 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using NotificationsVisualizerLibrary.Manifest;
+﻿using NotificationsVisualizerLibrary.Manifest;
 using NotificationsVisualizerLibrary.Model;
+using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Renderers;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
-using Windows.UI.Xaml.Navigation;
-using NotificationsVisualizerLibrary.Model.Enums;
 using Windows.UI.Xaml.Media.Imaging;
-using NotificationsVisualizerLibrary.Controls;
-using System.Diagnostics;
-using Windows.Storage;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Helpers;
-using Windows.UI.Notifications;
-using Windows.UI.Xaml.Shapes;
-using NotificationsVisualizerLibrary.Renderers;
-using NotificationsVisualizerLibrary.Parsers;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -45,12 +29,12 @@ namespace NotificationsVisualizerLibrary
 
         public PreviewTile()
         {
-            this.InitializeComponent();
+            InitializeComponent();
 
             VerticalAlignment = VerticalAlignment.Top;
             HorizontalAlignment = HorizontalAlignment.Left;
 
-            CurrFeatureSet = FeatureSet.Get(this.DeviceFamily, this.OSBuildNumber);
+            CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);
 
             Initialize();
         }
@@ -72,14 +56,18 @@ namespace NotificationsVisualizerLibrary
 
         #region Platform
 
-        private static readonly DependencyProperty PlatformProperty;
+        //private static readonly DependencyProperty PlatformProperty;
 
         #endregion
 
         #region TileSize
 
-        private static readonly DependencyProperty TileSizeProperty = DependencyProperty.Register(
-            "TileSize", typeof(TileSize), typeof(PreviewTile), new PropertyMetadata(TileSize.Medium, OnTileSizeChanged));
+        private static readonly DependencyProperty TileSizeProperty =
+            DependencyProperty.Register(
+                nameof(TileSize),
+                typeof(TileSize),
+                typeof(PreviewTile),
+                new PropertyMetadata(TileSize.Medium, OnTileSizeChanged));
 
         private static void OnTileSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -99,19 +87,19 @@ namespace NotificationsVisualizerLibrary
             switch (TileSize)
             {
                 case TileSize.Small:
-                    this.TilePixelSize = TileDensity.Small;
+                    TilePixelSize = TileDensity.Small;
                     break;
 
                 case TileSize.Medium:
-                    this.TilePixelSize = TileDensity.Medium;
+                    TilePixelSize = TileDensity.Medium;
                     break;
 
                 case TileSize.Wide:
-                    this.TilePixelSize = TileDensity.Wide;
+                    TilePixelSize = TileDensity.Wide;
                     break;
 
                 case TileSize.Large:
-                    this.TilePixelSize = TileDensity.Large;
+                    TilePixelSize = TileDensity.Large;
                     break;
 
                 default:
@@ -123,15 +111,20 @@ namespace NotificationsVisualizerLibrary
 
         public TileSize TileSize
         {
-            get { return (TileSize)GetValue(TileSizeProperty); }
-            set { SetValue(TileSizeProperty, value); }
+            get => (TileSize)GetValue(TileSizeProperty);
+            set => SetValue(TileSizeProperty, value);
         }
 
         #endregion
 
         #region TileDensity
 
-        private static readonly DependencyProperty TileDensityProperty = DependencyProperty.Register("TileDensity", typeof(TileDensity), typeof(PreviewTile), new PropertyMetadata(TileDensity.Desktop(), OnTileDensityChanged));
+        private static readonly DependencyProperty TileDensityProperty =
+            DependencyProperty.Register(
+                nameof(TileDensity),
+                typeof(TileDensity),
+                typeof(PreviewTile),
+                new PropertyMetadata(TileDensity.Desktop(), OnTileDensityChanged));
 
         private static void OnTileDensityChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -141,7 +134,9 @@ namespace NotificationsVisualizerLibrary
         private void OnTileDensityChanged(DependencyPropertyChangedEventArgs e)
         {
             if (TileDensity == null)
+            {
                 throw new NullReferenceException("TileDensity cannot be null");
+            }
 
             // It automatically scales
             UpdateTileSize();
@@ -149,23 +144,28 @@ namespace NotificationsVisualizerLibrary
 
         public TileDensity TileDensity
         {
-            get { return GetValue(TileDensityProperty) as TileDensity; }
-            set { SetValue(TileDensityProperty, value); }
+            get => GetValue(TileDensityProperty) as TileDensity;
+            set => SetValue(TileDensityProperty, value);
         }
 
         #endregion
 
         #region DeviceFamily
 
-        private static readonly DependencyProperty DeviceFamilyProperty = DependencyProperty.Register("DeviceFamily", typeof(DeviceFamily), typeof(PreviewTile), new PropertyMetadata(FeatureSet.GetCurrentDeviceFamily(), OnDeviceFamilyChanged));
+        private static readonly DependencyProperty DeviceFamilyProperty =
+            DependencyProperty.Register(
+                nameof(DeviceFamily),
+                typeof(DeviceFamily),
+                typeof(PreviewTile),
+                new PropertyMetadata(FeatureSet.GetCurrentDeviceFamily(), OnDeviceFamilyChanged));
 
         /// <summary>
         /// Gets or sets the current device family, which impacts what features are available on the tiles.
         /// </summary>
         public DeviceFamily DeviceFamily
         {
-            get { return (DeviceFamily)GetValue(DeviceFamilyProperty); }
-            set { SetValue(DeviceFamilyProperty, value); }
+            get => (DeviceFamily)GetValue(DeviceFamilyProperty);
+            set => SetValue(DeviceFamilyProperty, value);
         }
 
         private static void OnDeviceFamilyChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -184,15 +184,20 @@ namespace NotificationsVisualizerLibrary
 
         #endregion
 
-        private static readonly DependencyProperty OSBuildNumberProperty = DependencyProperty.Register("OSBuildNumber", typeof(int), typeof(PreviewTile), new PropertyMetadata(FeatureSet.GetCurrentOSBuildNumber(), OnOSBuildNumberChanged));
+        private static readonly DependencyProperty OSBuildNumberProperty =
+            DependencyProperty.Register(
+                nameof(OSBuildNumber),
+                typeof(int),
+                typeof(PreviewTile),
+                new PropertyMetadata(FeatureSet.GetCurrentOSBuildNumber(), OnOSBuildNumberChanged));
 
         /// <summary>
         /// Gets or sets the current OS version, which impacts what features are available in the adaptive tiles (and bug fixes).
         /// </summary>
         public int OSBuildNumber
         {
-            get { return (int)GetValue(OSBuildNumberProperty); }
-            set { SetValue(OSBuildNumberProperty, value); }
+            get => (int)GetValue(OSBuildNumberProperty);
+            set => SetValue(OSBuildNumberProperty, value);
         }
 
         private static void OnOSBuildNumberChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -209,55 +214,65 @@ namespace NotificationsVisualizerLibrary
 
         private void UpdateFeatureSet()
         {
-            CurrFeatureSet = FeatureSet.Get(this.DeviceFamily, this.OSBuildNumber);
+            CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);
 
-            this.UpdateBranding();
-            this.UpdateDisplayName();
-            this.UpdateVisualElements();
-            this.Reshow();
+            UpdateBranding();
+            UpdateDisplayName();
+            UpdateVisualElements();
+            Reshow();
         }
 
-        private static readonly DependencyProperty TilePixelSizeProperty = DependencyProperty.Register("TilePixelSize", typeof(Size), typeof(PreviewTile), new PropertyMetadata(default(Size)));
+        private static readonly DependencyProperty TilePixelSizeProperty =
+            DependencyProperty.Register(
+                nameof(TilePixelSize),
+                typeof(Size),
+                typeof(PreviewTile),
+                new PropertyMetadata(default(Size)));
 
         private Size TilePixelSize
         {
-            get { return (Size)GetValue(TilePixelSizeProperty); }
-            set { SetValue(TilePixelSizeProperty, value); }
+            get => (Size)GetValue(TilePixelSizeProperty);
+            set => SetValue(TilePixelSizeProperty, value);
         }
 
-        private static readonly DependencyProperty IsAnimationEnabledProperty = DependencyProperty.Register("IsAnimationEnabled", typeof(bool), typeof(PreviewTile), new PropertyMetadata(true));
+        private static readonly DependencyProperty IsAnimationEnabledProperty =
+            DependencyProperty.Register(
+                nameof(IsAnimationEnabled),
+                typeof(bool),
+                typeof(PreviewTile),
+                new PropertyMetadata(true));
 
         /// <summary>
         /// Gets or sets whether animation is enabled. If true, when new tile updates appear, they will animate onto the tile. Otherwise, they will just instantly appear.
         /// </summary>
         public bool IsAnimationEnabled
         {
-            get { return (bool)GetValue(IsAnimationEnabledProperty); }
-            set { SetValue(IsAnimationEnabledProperty, value); }
+            get => (bool)GetValue(IsAnimationEnabledProperty);
+            set => SetValue(IsAnimationEnabledProperty, value);
         }
 
-        private Model.Enums.Template[] GetValidTemplateValues()
+        private Template[] GetValidTemplateValues()
         {
             switch (TileSize)
             {
                 case TileSize.Small:
-                    return new Model.Enums.Template[] { Model.Enums.Template.TileSmall };
+                    return new Template[] { Model.Enums.Template.TileSmall };
 
                 case TileSize.Medium:
-                    return new Model.Enums.Template[] { Model.Enums.Template.TileMedium };
+                    return new Template[] { Model.Enums.Template.TileMedium };
 
                 case TileSize.Wide:
-                    return new Model.Enums.Template[] { Model.Enums.Template.TileWide };
+                    return new Template[] { Model.Enums.Template.TileWide };
 
                 case TileSize.Large:
-                    return new Model.Enums.Template[] { Model.Enums.Template.TileLarge };
+                    return new Template[] { Model.Enums.Template.TileLarge };
 
                 default:
-                    return new Model.Enums.Template[0];
+                    return new Template[0];
             }
         }
 
-        private Package _package;
+        //private readonly Package _package;
         private object _notificationData;
 
         private Uri GetLogo()
@@ -286,10 +301,10 @@ namespace NotificationsVisualizerLibrary
             return VisualElements.Square44x44Logo;
         }
 
-        private static async Task<string> GetMrtUri(Package package, string path)
-        {
-            return await package.GetMrtUri(path);
-        }
+        //private static async Task<string> GetMrtUri(Package package, string path)
+        //{
+        //    return await package.GetMrtUri(path);
+        //}
 
         /// <summary>
         /// Returns a tile updater for updating the content of this preview tile.
@@ -337,15 +352,12 @@ namespace NotificationsVisualizerLibrary
 
         private BitmapImage GenerateBitmapImage(Uri uri)
         {
-            if (uri == null)
-                return null;
-
-            return ImageHelper.GetBitmap(uri.OriginalString);
+            return uri == null ? null : ImageHelper.GetBitmap(uri.OriginalString);
         }
-        
+
 
         private Branding? _notificationBranding;
-        private bool _hasNotificationForCurrentSize;
+        internal bool _hasNotificationForCurrentSize;
 
         private void UpdateBranding()
         {
@@ -367,7 +379,7 @@ namespace NotificationsVisualizerLibrary
             // If the notification overrided branding
             if (_notificationBranding != null)
             {
-                var brandingValue = _notificationBranding.Value;
+                Branding brandingValue = _notificationBranding.Value;
 
                 // If we're on Mobile
                 if (DeviceFamily == DeviceFamily.Mobile)
@@ -407,7 +419,9 @@ namespace NotificationsVisualizerLibrary
 
                 // Small can never show display name (but it can apparently display logo)
                 if (TileSize == TileSize.Small)
+                {
                     showName = false;
+                }
             }
 
             // Otherwise, use behaviors from VisualElements
@@ -447,10 +461,7 @@ namespace NotificationsVisualizerLibrary
 
 
             // Decide if branding is shown...
-            if (HasBadge() || showName || showCornerLogo)
-                Branding.Visibility = Visibility.Visible;
-            else
-                Branding.Visibility = Visibility.Collapsed;
+            Branding.Visibility = HasBadge() || showName || showCornerLogo ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private bool HasBadge()
@@ -473,7 +484,9 @@ namespace NotificationsVisualizerLibrary
 
             // If animations are disabled, set animate to false
             if (!IsAnimationEnabled)
+            {
                 animate = false;
+            }
 
             // Store the current tile data, so that when the size changes, we can re-render using the data
             _notificationData = tile;
@@ -491,7 +504,6 @@ namespace NotificationsVisualizerLibrary
             // Reset things that a previous notification might have changed, like DisplayName
             ResetDisplayProperties();
 
-
             // If nothing to display, revert to default
             if (tile == null)
             {
@@ -502,9 +514,9 @@ namespace NotificationsVisualizerLibrary
             // Find the first matching template for the current size, or if none, revert to default
             if (tile is ITile)
             {
-                var xmlTile = tile as ITile;
+                ITile xmlTile = tile as ITile;
 
-                var binding = xmlTile.Visual.Bindings.FirstOrDefault(m => GetValidTemplateValues().Contains(m.Template));
+                AdaptiveBinding binding = xmlTile.Visual.Bindings.FirstOrDefault(m => GetValidTemplateValues().Contains(m.Template));
                 if (binding == null)
                 {
                     ShowDefault(animate);
@@ -512,7 +524,6 @@ namespace NotificationsVisualizerLibrary
                 }
 
                 _hasNotificationForCurrentSize = true;
-
 
                 // Custom display name from visual level
                 if (xmlTile.Visual.DisplayName != null)
@@ -528,16 +539,15 @@ namespace NotificationsVisualizerLibrary
                     UpdateDisplayName();
                 }
 
-
-
                 // Update branding from notification
                 _notificationBranding = xmlTile.Visual.Branding; // first attempt to use branding specified in the visual
 
                 if (binding.Branding != null)
+                {
                     _notificationBranding = binding.Branding; // and then branding has a chance to override it
+                }
 
                 UpdateBranding();
-
 
                 // Generate the actual notification content
                 PreviewTileNotification notificationContent = new PreviewTileNotification()
@@ -555,7 +565,7 @@ namespace NotificationsVisualizerLibrary
                 ShowElement(notificationContent, animate);
             }
         }
-        
+
         private bool _isAnimating;
         private bool _isWaitingToShow;
 
@@ -577,11 +587,12 @@ namespace NotificationsVisualizerLibrary
 
             // Otherwise, clear all but previous
             while (canvas.Children.Count > 1)
+            {
                 canvas.Children.RemoveAt(0);
+            }
 
             // And then add our new
             canvas.Children.Add(el);
-
 
             //Storyboard s = CreateAnimationForAlreadySeenNotification(el);
             Storyboard s = CreateAnimationForNewNotification(previous, el);
@@ -606,10 +617,9 @@ namespace NotificationsVisualizerLibrary
         private Storyboard CreateAnimationForNewNotification(UIElement oldNotification, UIElement newNotification)
         {
             Storyboard s = new Storyboard();
-            
+
             TimeSpan duration = TimeSpan.FromSeconds(0.5);
             TimeSpan halfTime = TimeSpan.FromSeconds(duration.TotalSeconds / 2);
-
 
             // Assign a scale transform to the old notification
             oldNotification.Projection = new PlaneProjection();
@@ -624,10 +634,6 @@ namespace NotificationsVisualizerLibrary
             Storyboard.SetTarget(a, oldNotification.Projection);
             Storyboard.SetTargetProperty(a, "RotationX");
             s.Children.Add(a);
-
-
-
-
 
             // For new notification...
             newNotification.Projection = new PlaneProjection()
@@ -647,55 +653,54 @@ namespace NotificationsVisualizerLibrary
             Storyboard.SetTargetProperty(a, "RotationX");
             s.Children.Add(a);
 
-
-
             return s;
         }
 
-        private Storyboard CreateAnimationForAlreadySeenNotification(UIElement alreadySeenNotification)
-        {
-            Storyboard s = new Storyboard();
+        //private Storyboard CreateAnimationForAlreadySeenNotification(UIElement alreadySeenNotification)
+        //{
+        //    Storyboard s = new Storyboard();
 
-            DoubleAnimation animateNewElement = new DoubleAnimation()
-            {
-                Duration = TimeSpan.FromSeconds(1),
-                From = TilePixelSize.Height,
-                To = 0
-            };
+        //    DoubleAnimation animateNewElement = new DoubleAnimation()
+        //    {
+        //        Duration = TimeSpan.FromSeconds(1),
+        //        From = TilePixelSize.Height,
+        //        To = 0
+        //    };
 
-            alreadySeenNotification.RenderTransform = new TranslateTransform()
-            {
-                Y = animateNewElement.From.Value
-            };
+        //    alreadySeenNotification.RenderTransform = new TranslateTransform()
+        //    {
+        //        Y = animateNewElement.From.Value
+        //    };
 
-            Storyboard.SetTarget(animateNewElement, alreadySeenNotification.RenderTransform);
-            Storyboard.SetTargetProperty(animateNewElement, "Y");
+        //    Storyboard.SetTarget(animateNewElement, alreadySeenNotification.RenderTransform);
+        //    Storyboard.SetTargetProperty(animateNewElement, "Y");
 
-            s.Children.Add(animateNewElement);
+        //    s.Children.Add(animateNewElement);
 
-            return s;
-        }
-        
+        //    return s;
+        //}
+
         private string _customDisplayName = null;
 
-        private static readonly DependencyProperty DisplayNameProperty = DependencyProperty.Register("DisplayName", typeof(string), typeof(PreviewTile), new PropertyMetadata(""));
+        private static readonly DependencyProperty DisplayNameProperty =
+            DependencyProperty.Register(
+                nameof(DisplayName),
+                typeof(string),
+                typeof(PreviewTile),
+                new PropertyMetadata(""));
 
         /// <summary>
         /// Gets or sets a name that is associated with and displayed on the preview tile. This name is displayed on the tile and in the tile's tooltip. UpdateAsync must be called after changing this in order to commit the changes to the UI of the tile.
         /// </summary>
         public string DisplayName
         {
-            get { return GetValue(DisplayNameProperty) as string; }
-            set { SetValue(DisplayNameProperty, value); }
+            get => GetValue(DisplayNameProperty) as string;
+            set => SetValue(DisplayNameProperty, value);
         }
 
         private void UpdateDisplayName()
         {
-            if (_customDisplayName != null)
-                TextBlockDisplayName.Text = _customDisplayName;
-
-            else
-                TextBlockDisplayName.Text = DisplayName;
+            TextBlockDisplayName.Text = _customDisplayName ?? DisplayName;
         }
 
         private void UpdateVisualElements()

@@ -2,39 +2,38 @@
     x:Class="NotificationsVisualizerLibraryTest.SampleSettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:NotificationsVisualizerLibraryTest"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:NotificationsVisualizerLibraryTest"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    xmlns:visualizer="using:NotificationsVisualizerLibrary">
+    xmlns:visualizer="using:NotificationsVisualizerLibrary"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
 
-    <ScrollViewer Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
 
         <StackPanel Margin="20">
-            
-            <visualizer:PreviewTile
-                x:Name="MediumPreviewTile"
-                IsAnimationEnabled="False"/>
-            
+
+            <visualizer:PreviewTile x:Name="MediumPreviewTile" IsAnimationEnabled="False" />
+
             <visualizer:PreviewTile
                 x:Name="WidePreviewTile"
+                Margin="0,6,0,0"
                 IsAnimationEnabled="False"
-                TileSize="Wide"
-                Margin="0,6,0,0"/>
-            
+                TileSize="Wide" />
+
             <ToggleSwitch
                 x:Name="ToggleShowHomework"
-                Header="Show incomplete homework"
                 Margin="0,24,0,0"
-                IsOn="True"/>
-            
+                Header="Show incomplete homework"
+                IsOn="True" />
+
             <ToggleSwitch
                 x:Name="ToggleShowExams"
-                Header="Show upcoming exams"
                 Margin="0,12,0,0"
-                IsOn="True"/>
-            
+                Header="Show upcoming exams"
+                IsOn="True" />
+
         </StackPanel>
-        
+
     </ScrollViewer>
 </Page>

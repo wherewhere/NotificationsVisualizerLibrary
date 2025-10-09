@@ -1,13 +1,9 @@
 ﻿using NotificationsVisualizerLibrary.Controls;
 using NotificationsVisualizerLibrary.Helpers;
 using NotificationsVisualizerLibrary.Model;
-using NotificationsVisualizerLibrary.Model.BaseElements;
 using NotificationsVisualizerLibrary.Model.Enums;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -42,7 +38,7 @@ namespace NotificationsVisualizerLibrary.Renderers
 
             answer.VerticalAlignment = valignment;
 
-            double topMarginOffset = externalMargin.Top;
+            //double topMarginOffset = externalMargin.Top;
 
             GenerateItems(
                 children: adaptiveContainer.Children,
@@ -70,17 +66,9 @@ namespace NotificationsVisualizerLibrary.Renderers
         /// <returns></returns>
         private static bool IsChildInline(object child)
         {
-            if (child is AdaptiveImage)
-            {
-                return (child as AdaptiveImage).Placement == Placement.Inline;
-            }
-
-            if (child is AdaptiveTextField)
-            {
-                return (child as AdaptiveTextField).Placement == TextPlacement.Inline;
-            }
-
-            return true;
+            return child is AdaptiveImage
+                ? (child as AdaptiveImage).Placement == Placement.Inline
+                : !(child is AdaptiveTextField) || (child as AdaptiveTextField).Placement == TextPlacement.Inline;
         }
 
         private static Brush GetActionBackgroundBrush()
@@ -100,7 +88,7 @@ namespace NotificationsVisualizerLibrary.Renderers
             bool isFirst = true;
             bool needsImageMargin = false;
 
-            foreach (var node in children.Where(i => IsChildInline(i)))
+            foreach (AdaptiveChildElement node in children.Where(i => IsChildInline(i)))
             {
                 FrameworkElement uiChild = null;
 
@@ -121,7 +109,7 @@ namespace NotificationsVisualizerLibrary.Renderers
                 // If image
                 else if (node is AdaptiveImage)
                 {
-                    var imageNode = node as AdaptiveImage;
+                    AdaptiveImage imageNode = node as AdaptiveImage;
 
                     // An image on top of first group have 0 margin
                     // An image on top of another group should respond to topMarginOffset
@@ -172,7 +160,9 @@ namespace NotificationsVisualizerLibrary.Renderers
             Thickness externalMargin)
         {
             if (group.Subgroups.Count == 0)
+            {
                 return null;
+            }
 
             double topMarginOffset = 0;
 
@@ -211,7 +201,9 @@ namespace NotificationsVisualizerLibrary.Renderers
                     sp.Margin.Bottom);
 
                 if (group.ActionId != null)
+                {
                     sp.Background = GetActionBackgroundBrush();
+                }
 
                 return sp;
             }
@@ -229,7 +221,7 @@ namespace NotificationsVisualizerLibrary.Renderers
 
                 for (int i = 0; i < group.Subgroups.Count; i++)
                 {
-                    var subgroup = group.Subgroups[i];
+                    AdaptiveSubgroup subgroup = group.Subgroups[i];
                     int weight = weights[i];
 
                     //add column for the subgroup
@@ -239,7 +231,7 @@ namespace NotificationsVisualizerLibrary.Renderers
                     });
 
                     //and create the subgroup visual
-                    var subgroupEl = GenerateSubgroup(subgroup, isFirstGroup, topMarginOffset, externalMargin);
+                    AdaptiveStackPanel subgroupEl = GenerateSubgroup(subgroup, isFirstGroup, topMarginOffset, externalMargin);
                     Grid.SetColumn(subgroupEl, g.ColumnDefinitions.Count - 1); //assign it to this column
 
                     //set text stacking
@@ -259,14 +251,20 @@ namespace NotificationsVisualizerLibrary.Renderers
 
                     //always add 8 pixel padding between columns (but not on the right, last, side)
                     if (i != group.Subgroups.Count - 1)
+                    {
                         g.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(8) });
+                    }
 
                     if (subgroup.ActionId != null)
+                    {
                         subgroupEl.Background = GetActionBackgroundBrush();
+                    }
                 }
 
                 if (group.ActionId != null)
+                {
                     g.Background = GetActionBackgroundBrush();
+                }
 
                 return g;
             }
@@ -280,29 +278,34 @@ namespace NotificationsVisualizerLibrary.Renderers
             {
                 // If assigned, use its value
                 if (subgroups[i].HintWeight != null)
+                {
                     weights[i] = subgroups[i].HintWeight.Value;
+                }
 
                 // Otherwise, do some logic...
                 else
                 {
                     // If very first subgroup doesn't have hint-weight specified, it's assigned 50
-                    if (i == 0)
-                        weights[i] = 50;
+                    weights[i] = i == 0
+                        ? 50
 
-                    // And the remaining get assigned 100 - the sum of preceeding weights
-                    else
-                        weights[i] = 100 - weights.Take(i).Where(w => w != AdaptiveSubgroup.WEIGHT_AUTO).Sum();
+                        // And the remaining get assigned 100 - the sum of preceeding weights
+                        : 100 - weights.Take(i).Where(w => w != AdaptiveSubgroup.WEIGHT_AUTO).Sum();
                 }
 
                 if (weights[i] != AdaptiveSubgroup.WEIGHT_AUTO)
                 {
                     // Weights of 0 are assigned as 1
                     if (weights[i] == 0)
+                    {
                         weights[i] = 1;
+                    }
 
                     // Negative weights are turned into positive
                     else if (weights[i] < 0)
+                    {
                         weights[i] *= -1;
+                    }
                 }
             }
 
@@ -320,15 +323,14 @@ namespace NotificationsVisualizerLibrary.Renderers
             double maxOffset = 0.0;
 
             // Look through each subgroup that has children
-            foreach (var subgroup in subgroups.Where(i => i.Children.Any()))
+            foreach (AdaptiveSubgroup subgroup in subgroups.Where(i => i.Children.Any()))
             {
-                var firstNode = subgroup.Children.Where(i => IsChildInline(i)).First();
+                AdaptiveChildElement firstNode = subgroup.Children.Where(i => IsChildInline(i)).First();
                 double itemOffset = 0;
 
                 if (firstNode is AdaptiveTextField)
                 {
-                    bool ignore;
-                    TextStyleInfo textStyleInfo = AdaptiveGenerator_Text.GetStyleIndex((firstNode as AdaptiveTextField).HintStyle, out ignore);
+                    TextStyleInfo textStyleInfo = AdaptiveGenerator_Text.GetStyleIndex((firstNode as AdaptiveTextField).HintStyle, out bool ignore);
                     int lineStyleIndex = textStyleInfo.Index;
                     itemOffset = AdaptiveGenerator_Text.DefaultTypeRamp[lineStyleIndex].TopOffset;
                 }
@@ -339,11 +341,15 @@ namespace NotificationsVisualizerLibrary.Renderers
                 }
 
                 if (itemOffset > maxOffset)
+                {
                     maxOffset = itemOffset;
+                }
             }
 
             if (hasImage && maxOffset < AdaptiveConstants.DefaultImageMargin)
+            {
                 maxOffset = AdaptiveConstants.DefaultImageMargin;
+            }
 
             return maxOffset;
         }

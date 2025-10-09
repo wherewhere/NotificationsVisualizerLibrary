@@ -2,10 +2,6 @@
 using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Model.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -15,7 +11,7 @@ namespace NotificationsVisualizerLibrary.Controls
 {
     internal class AdaptiveGenerator_Text
     {
-        private static readonly SolidColorBrush TextBlockBrush = new SolidColorBrush(Colors.White);
+        //private static readonly SolidColorBrush TextBlockBrush = new SolidColorBrush(Colors.White);
         private const double SubtleOpacity = 0.6;
         private const OpticalMarginAlignment DefaultOpticalMarginAlignment = OpticalMarginAlignment.TrimSideBearings;
         private const TextTrimming DefaultTextTrimming = TextTrimming.CharacterEllipsis;
@@ -42,7 +38,9 @@ namespace NotificationsVisualizerLibrary.Controls
         private static void EnsureStyleTable()
         {
             if (DefaultTypeRamp.Length != AdaptiveConstants.KNOWN_TEXT_STYLES_COUNT)
+            {
                 throw new Exception("DefaultTypeRamp size is incorrect");
+            }
 
             _stylesMap = new TextStylesMap();
 
@@ -112,15 +110,15 @@ namespace NotificationsVisualizerLibrary.Controls
         /// <param name="lineStyleIndex"></param>
         /// <returns></returns>
         public static TextBlock GenerateText(
-            AdaptiveTextField textField, 
-            bool isFirst, 
-            bool isFirstGroup, 
-            int previousLineStyleIndex, 
+            AdaptiveTextField textField,
+            bool isFirst,
+            bool isFirstGroup,
+            int previousLineStyleIndex,
             double topMarginOffset,
             bool needsImageMargin,
             out int lineStyleIndex)
         {
-            lineStyleIndex = -1;
+            //lineStyleIndex = -1;
 
             TextBlock spTextBlock = new TextBlock()
             {
@@ -130,8 +128,7 @@ namespace NotificationsVisualizerLibrary.Controls
             };
 
             // Get the text style info
-            bool isSubtle;
-            TextStyleInfo textStyleInfo = GetStyleIndex(textField.HintStyle, out isSubtle);
+            TextStyleInfo textStyleInfo = GetStyleIndex(textField.HintStyle, out bool isSubtle);
 
             // Set the XAML text style
             SetStyle(spTextBlock, textStyleInfo.XamlName);
@@ -150,30 +147,15 @@ namespace NotificationsVisualizerLibrary.Controls
             double topMargin;
             if (isFirst)
             {
-                if (isFirstGroup)
-                {
-                    topMargin = DefaultTypeRamp[lineStyleIndex].FirstGroupMargin - AdaptiveConstants.DefaultExternalMargin;
-                }
-
-                else
-                {
-                    topMargin = topMarginOffset - DefaultTypeRamp[lineStyleIndex].TopOffset;
-                }
+                topMargin = isFirstGroup
+                    ? DefaultTypeRamp[lineStyleIndex].FirstGroupMargin - AdaptiveConstants.DefaultExternalMargin
+                    : topMarginOffset - DefaultTypeRamp[lineStyleIndex].TopOffset;
             }
-
-            else if (previousLineStyleIndex != -1)
-            {
-                topMargin = DefaultTypeRamp[previousLineStyleIndex].TopMarginValues[lineStyleIndex];
-            }
-
-            else if (needsImageMargin)
-            {
-                topMargin = AdaptiveConstants.DefaultImageMargin;
-            }
-
             else
             {
-                topMargin = DefaultTypeRamp[0].TopMarginValues[lineStyleIndex];
+                topMargin = previousLineStyleIndex != -1
+                    ? DefaultTypeRamp[previousLineStyleIndex].TopMarginValues[lineStyleIndex]
+                    : needsImageMargin ? AdaptiveConstants.DefaultImageMargin : DefaultTypeRamp[0].TopMarginValues[lineStyleIndex];
             }
 
             // Override if needed line height
@@ -197,15 +179,15 @@ namespace NotificationsVisualizerLibrary.Controls
             // Align
             switch (textField.HintAlign)
             {
-                case Model.Enums.HintAlign.Center:
+                case HintAlign.Center:
                     spTextBlock.TextAlignment = TextAlignment.Center;
                     break;
 
-                case Model.Enums.HintAlign.Right:
+                case HintAlign.Right:
                     spTextBlock.TextAlignment = TextAlignment.Right;
                     break;
 
-                case Model.Enums.HintAlign.Left:
+                case HintAlign.Left:
                 default:
                     spTextBlock.TextAlignment = TextAlignment.Left;
                     break;

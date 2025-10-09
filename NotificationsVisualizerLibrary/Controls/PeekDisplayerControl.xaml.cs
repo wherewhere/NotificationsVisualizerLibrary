@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
-using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -26,26 +17,33 @@ namespace NotificationsVisualizerLibrary.Controls
 
     internal sealed partial class PeekDisplayerControl : UserControl
     {
-        public PeekDisplayerControl()
-        {
-            this.InitializeComponent();
-        }
+        public PeekDisplayerControl() => InitializeComponent();
 
         #region PreviewTileNotificationRaw
 
-        private static readonly DependencyProperty PreviewTileNotificationRawProperty = DependencyProperty.Register("PreviewTileNotificationRaw", typeof(PreviewTileNotificationRaw), typeof(PeekDisplayerControl), null);
+        private static readonly DependencyProperty PreviewTileNotificationRawProperty =
+            DependencyProperty.Register(
+                nameof(PreviewTileNotificationRaw),
+                typeof(PreviewTileNotificationRaw),
+                typeof(PeekDisplayerControl),
+                null);
 
         internal PreviewTileNotificationRaw PreviewTileNotificationRaw
         {
-            get { return GetValue(PreviewTileNotificationRawProperty) as PreviewTileNotificationRaw; }
-            set { SetValue(PreviewTileNotificationRawProperty, value); }
+            get => GetValue(PreviewTileNotificationRawProperty) as PreviewTileNotificationRaw;
+            set => SetValue(PreviewTileNotificationRawProperty, value);
         }
 
         #endregion
 
         #region PeekStartsOn
 
-        private static readonly DependencyProperty PeekStartsOnProperty = DependencyProperty.Register("PeekStartsOn", typeof(PeekContentDisplayed), typeof(PeekDisplayerControl), new PropertyMetadata(PeekContentDisplayed.PeekImage, OnPeekStartsOnPropertyChanged));
+        private static readonly DependencyProperty PeekStartsOnProperty =
+            DependencyProperty.Register(
+                nameof(PeekStartsOn),
+                typeof(PeekContentDisplayed),
+                typeof(PeekDisplayerControl),
+                new PropertyMetadata(PeekContentDisplayed.PeekImage, OnPeekStartsOnPropertyChanged));
 
         private static void OnPeekStartsOnPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -59,8 +57,8 @@ namespace NotificationsVisualizerLibrary.Controls
 
         public PeekContentDisplayed PeekStartsOn
         {
-            get { return (PeekContentDisplayed)GetValue(PeekStartsOnProperty); }
-            set { SetValue(PeekStartsOnProperty, value); }
+            get => (PeekContentDisplayed)GetValue(PeekStartsOnProperty);
+            set => SetValue(PeekStartsOnProperty, value);
         }
 
         #endregion
@@ -70,7 +68,9 @@ namespace NotificationsVisualizerLibrary.Controls
             Size size = e.NewSize;
 
             if (size.IsEmpty || double.IsInfinity(size.Height) || double.IsInfinity(size.Width))
+            {
                 return;
+            }
 
             // Set clipping so content outside the canvas isn't displayed
             CanvasClip.Rect = new Rect(new Point(), size);
@@ -87,7 +87,7 @@ namespace NotificationsVisualizerLibrary.Controls
         {
             double valueWhenPeekVisible = 0;
             double valueWhenContentVisible = normalHeight * -1;
-            double halfValue = normalHeight * -0.5;
+            //double halfValue = normalHeight * -0.5;
 
             double initialValue;
             double switchedValue;
@@ -115,8 +115,6 @@ namespace NotificationsVisualizerLibrary.Controls
                 EasingMode = EasingMode.EaseInOut,
                 Exponent = 4
             };
-
-            
 
             DoubleAnimationUsingKeyFrames a = new DoubleAnimationUsingKeyFrames();
 
@@ -167,24 +165,17 @@ namespace NotificationsVisualizerLibrary.Controls
         {
             double normalHeight = PresentationCanvas.ActualHeight;
 
-            if (_storyboard != null)
-            {
-                _storyboard.Stop();
-            }
+            _storyboard?.Stop();
 
-            
-            
             _storyboard = new Storyboard()
             {
                 RepeatBehavior = RepeatBehavior.Forever
             };
 
-
             DoubleAnimationUsingKeyFrames a = GeneratePeekAnimation(
                 normalHeight,
                 PeekStartsOn,
                 TimeSpan.FromSeconds(4));
-
 
             _storyboard.Children.Add(a);
 

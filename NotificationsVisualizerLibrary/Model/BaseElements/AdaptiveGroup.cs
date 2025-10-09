@@ -1,11 +1,6 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -39,21 +34,22 @@ namespace NotificationsVisualizerLibrary.Model
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
 
             ParseKnownAttributes(attributes, result, baseUri, addImageQuery);
 
             HandleRemainingAttributes(attributes, result);
-            
+
             foreach (XElement n in node.Elements())
             {
                 try
                 {
                     HandleChild(result, n, baseUri, addImageQuery);
                 }
-
                 catch (IncompleteElementException) { }
             }
         }
@@ -63,9 +59,11 @@ namespace NotificationsVisualizerLibrary.Model
             if (Context != NotificationType.Tile && Context != NotificationType.Toast)
             {
                 // actionId is optional
-                var attrActionId = attributes.PopAttribute(ATTR_ACTIONID);
+                XAttribute attrActionId = attributes.PopAttribute(ATTR_ACTIONID);
                 if (attrActionId != null)
-                    this.ActionId = attrActionId.Value;
+                {
+                    ActionId = attrActionId.Value;
+                }
             }
         }
 
@@ -77,12 +75,15 @@ namespace NotificationsVisualizerLibrary.Model
                 subgroup.Parse(result, child, baseUri, addImageQuery);
 
                 if (!result.IsOkForRender())
+                {
                     throw new IncompleteElementException();
+                }
 
                 if (subgroup != null)
-                    this.Add(subgroup);
+                {
+                    Add(subgroup);
+                }
             }
-
             else
             {
                 result.AddError($@"Invalid child ""{child.Name.LocalName}"" found in a group. Groups can only contain subgroups.", GetErrorPositionInfo(child));

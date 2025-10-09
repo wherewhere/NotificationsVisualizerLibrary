@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Windows.Foundation;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace NotificationsVisualizerLibrary.Controls
@@ -20,7 +15,9 @@ namespace NotificationsVisualizerLibrary.Controls
             Size answer = base.MeasureOverride(availableSize);
 
             if (Children != null && Children.OfType<IAdaptiveControl>().Any(i => !i.DoesAllContentFit))
+            {
                 DoesAllContentFit = false;
+            }
 
             return answer;
         }

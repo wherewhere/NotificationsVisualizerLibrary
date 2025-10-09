@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Documents;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
 // The Templated Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234235
@@ -19,25 +12,32 @@ namespace NotificationsVisualizerLibrary.Controls
     {
         public bool DoesAllContentFit { get; private set; }
 
-        public CircleImage()
-        {
-            this.DefaultStyleKey = typeof(CircleImage);
-        }
+        public CircleImage() => DefaultStyleKey = typeof(CircleImage);
 
-        private static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(BitmapImage), typeof(CircleImage), new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
+        private static readonly DependencyProperty SourceProperty =
+            DependencyProperty.Register(
+                nameof(Source),
+                typeof(BitmapImage),
+                typeof(CircleImage),
+                new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
 
         public BitmapImage Source
         {
-            get { return GetValue(SourceProperty) as BitmapImage; }
-            set { SetValue(SourceProperty, value); }
+            get => GetValue(SourceProperty) as BitmapImage;
+            set => SetValue(SourceProperty, value);
         }
 
-        private static readonly DependencyProperty OverlayOpacityProperty = DependencyProperty.Register("OverlayOpacity", typeof(double), typeof(CircleImage), new PropertyMetadata(0));
+        private static readonly DependencyProperty OverlayOpacityProperty =
+            DependencyProperty.Register(
+                nameof(OverlayOpacity),
+                typeof(double),
+                typeof(CircleImage),
+                new PropertyMetadata(0));
 
         public double OverlayOpacity
         {
-            get { return (double)GetValue(OverlayOpacityProperty); }
-            set { SetValue(OverlayOpacityProperty, value); }
+            get => (double)GetValue(OverlayOpacityProperty);
+            set => SetValue(OverlayOpacityProperty, value);
         }
 
         private static void OnSourcePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -47,24 +47,22 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            BitmapImage oldBitmap = e.OldValue as BitmapImage;
-
-            if (oldBitmap != null)
+            if (e.OldValue is BitmapImage oldBitmap)
+            {
                 oldBitmap.ImageOpened -= Bitmap_ImageOpened;
+            }
 
-            BitmapImage newBitmap = e.NewValue as BitmapImage;
-
-            if (newBitmap != null)
+            if (e.NewValue is BitmapImage newBitmap)
             {
                 newBitmap.ImageOpened += Bitmap_ImageOpened;
             }
 
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         private void Bitmap_ImageOpened(object sender, RoutedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -88,7 +86,9 @@ namespace NotificationsVisualizerLibrary.Controls
             double min = 0;
 
             if (Source != null)
+            {
                 min = Math.Min(Source.PixelWidth, Source.PixelHeight);
+            }
 
             switch (Stretch)
             {
@@ -98,12 +98,11 @@ namespace NotificationsVisualizerLibrary.Controls
                     if (double.IsInfinity(availableSize.Width))
                     {
                         // If both dimmensions are infinity
-                        if (double.IsInfinity(availableSize.Height))
-                            return new Size(min, min);
+                        return double.IsInfinity(availableSize.Height)
+                            ? new Size(min, min)
 
-                        // Otherwise fit to height
-                        else
-                            return new Size(availableSize.Height, availableSize.Height);
+                            // Otherwise fit to height
+                            : new Size(availableSize.Height, availableSize.Height);
                     }
 
                     // Else if height is infinite
@@ -116,17 +115,18 @@ namespace NotificationsVisualizerLibrary.Controls
                     // Otherwise neither are infinite
                     else
                     {
-                        if (availableSize.Width < availableSize.Height)
-                            return new Size(availableSize.Width, availableSize.Width);
-
-                        return new Size(availableSize.Height, availableSize.Height);
+                        return availableSize.Width < availableSize.Height
+                            ? new Size(availableSize.Width, availableSize.Width)
+                            : new Size(availableSize.Height, availableSize.Height);
                     }
 
 
                 case CircleImageStretch.UniformToWidth:
 
                     if (double.IsInfinity(availableSize.Width))
+                    {
                         return new Size(min, min);
+                    }
 
                     return new Size(availableSize.Width, availableSize.Width);
 
@@ -140,7 +140,12 @@ namespace NotificationsVisualizerLibrary.Controls
             }
         }
 
-        private static readonly DependencyProperty StretchProperty = DependencyProperty.Register("Stretch", typeof(CircleImageStretch), typeof(CircleImage), new PropertyMetadata(CircleImageStretch.UniformToWidthOrHeight, OnStretchPropertyChanged));
+        private static readonly DependencyProperty StretchProperty =
+            DependencyProperty.Register(
+                nameof(Stretch),
+                typeof(CircleImageStretch),
+                typeof(CircleImage),
+                new PropertyMetadata(CircleImageStretch.UniformToWidthOrHeight, OnStretchPropertyChanged));
 
         private static void OnStretchPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -149,13 +154,13 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         public CircleImageStretch Stretch
         {
-            get { return (CircleImageStretch)GetValue(StretchProperty); }
-            set { SetValue(StretchProperty, value); }
+            get => (CircleImageStretch)GetValue(StretchProperty);
+            set => SetValue(StretchProperty, value);
         }
     }
 

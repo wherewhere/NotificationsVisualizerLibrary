@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -23,23 +20,25 @@ namespace NotificationsVisualizerLibrary.Model
 
         internal IEnumerable<AdaptiveChildElement> GetAllDescendants()
         {
-            foreach (var child in GetAllChildren())
+            foreach (AdaptiveChildElement child in GetAllChildren())
             {
                 yield return child;
 
                 if (child is AdaptiveParentElement)
                 {
-                    foreach (var descendant in (child as AdaptiveParentElement).GetAllDescendants())
+                    foreach (AdaptiveChildElement descendant in (child as AdaptiveParentElement).GetAllDescendants())
+                    {
                         yield return descendant;
+                    }
                 }
             }
         }
 
         internal override void ApplyDataBinding(DataBindingValues dataBinding)
         {
-            base.ApplyDataBindingToThisInstance(dataBinding);
+            ApplyDataBindingToThisInstance(dataBinding);
 
-            foreach (var child in GetAllChildren())
+            foreach (AdaptiveChildElement child in GetAllChildren())
             {
                 child.ApplyDataBinding(dataBinding);
             }

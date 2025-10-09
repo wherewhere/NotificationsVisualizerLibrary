@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -11,12 +8,17 @@ namespace NotificationsVisualizerLibrary.Controls
 {
     internal class EqualColumnsPanel : Panel
     {
-        private static readonly DependencyProperty ColumnSpacingProperty = DependencyProperty.Register("ColumnSpacing", typeof(double), typeof(EqualColumnsPanel), new PropertyMetadata(0.0, OnDisplayPropertyChanged));
+        private static readonly DependencyProperty ColumnSpacingProperty =
+            DependencyProperty.Register(
+                nameof(ColumnSpacing),
+                typeof(double),
+                typeof(EqualColumnsPanel),
+                new PropertyMetadata(0.0, OnDisplayPropertyChanged));
 
         public double ColumnSpacing
         {
-            get { return (double)GetValue(ColumnSpacingProperty); }
-            set { SetValue(ColumnSpacingProperty, value); }
+            get => (double)GetValue(ColumnSpacingProperty);
+            set => SetValue(ColumnSpacingProperty, value);
         }
 
         private static void OnDisplayPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -26,7 +28,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -36,7 +38,7 @@ namespace NotificationsVisualizerLibrary.Controls
             double[] columnWidths = GetColumnWidths(availableSize);
 
             int i = 0;
-            foreach (var child in this.Children.Where(x => CountsForDisplay(x)))
+            foreach (UIElement child in Children.Where(x => CountsForDisplay(x)))
             {
                 child.Measure(new Size(columnWidths[i], availableSize.Height));
 
@@ -54,7 +56,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
             int i = 0;
             double posX = 0;
-            foreach (var child in this.Children.Where(x => CountsForDisplay(x)))
+            foreach (UIElement child in Children.Where(x => CountsForDisplay(x)))
             {
                 Size childFinalSize = new Size(columnWidths[i], finalSize.Height);
 
@@ -76,7 +78,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private int GetNumberOfColumns()
         {
-            return this.Children.Count(i => CountsForDisplay(i));
+            return Children.Count(i => CountsForDisplay(i));
         }
 
         private double[] GetColumnWidths(Size totalSize)
@@ -84,14 +86,18 @@ namespace NotificationsVisualizerLibrary.Controls
             int numOfCols = GetNumberOfColumns();
 
             if (numOfCols <= 0)
+            {
                 return new double[0];
+            }
 
             if (numOfCols == 1)
+            {
                 return new double[] { totalSize.Width };
+            }
 
             double[] colWidths = new double[numOfCols];
 
-            double widthWithoutSpacing = totalSize.Width - ColumnSpacing * (numOfCols - 1);
+            double widthWithoutSpacing = totalSize.Width - (ColumnSpacing * (numOfCols - 1));
             double remainingWidth = widthWithoutSpacing;
 
             for (int i = 0; i < colWidths.Length; i++)

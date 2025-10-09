@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Data.Xml.Dom;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.UI.Notifications;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -29,15 +19,11 @@ namespace NotificationsVisualizerLibraryTest
     {
         public UpdateImageInUsePage()
         {
-            this.InitializeComponent();
-
-            var dontWait = Initialize();
+            InitializeComponent();
+            _ = Initialize();
         }
 
-        private async Task Initialize()
-        {
-            await UpdateImage();
-        }
+        private async Task Initialize() => await UpdateImage();
 
         private async Task UpdateImage()
         {

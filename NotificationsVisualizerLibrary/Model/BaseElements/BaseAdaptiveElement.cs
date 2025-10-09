@@ -1,12 +1,10 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Parsers;
-using System.Collections;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -31,9 +29,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             IActivatableElement el = this as IActivatableElement;
 
             // activationType is optional
-            ActivationType type;
-            if (TryParseEnum(result, attributes, ATTR_ACTIVATIONTYPE, out type))
+            if (TryParseEnum(result, attributes, ATTR_ACTIVATIONTYPE, out ActivationType type))
+            {
                 el.ActivationType = type;
+            }
 
 
             // arguments is required
@@ -47,24 +46,25 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                     throw new IncompleteElementException();
                 }
             }
-
             else
+            {
                 el.Arguments = attrArguments.Value;
+            }
         }
 
         public virtual ObjectModelObject ConvertToObject()
         {
-            var classAttr = GetObjectModelClassAttribute();
+            ObjectModelClassAttribute classAttr = GetObjectModelClassAttribute();
             if (classAttr == null)
             {
                 return null;
             }
 
-            var answer = new ObjectModelObject(classAttr.Name);
+            ObjectModelObject answer = new ObjectModelObject(classAttr.Name);
 
-            foreach (var propInfo in this.GetType().GetProperties())
+            foreach (PropertyInfo propInfo in this.GetType().GetProperties())
             {
-                var propAttr = GetObjectModelPropertyAttribute(propInfo);
+                ObjectModelPropertyAttribute propAttr = GetObjectModelPropertyAttribute(propInfo);
                 if (propAttr != null)
                 {
                     object propVal = propInfo.GetValue(this);
@@ -80,11 +80,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 }
                 else
                 {
-                    var bindingPropAttr = GetObjectModelBindingPropertyAttribute(propInfo);
+                    ObjectModelBindingPropertyAttribute bindingPropAttr = GetObjectModelBindingPropertyAttribute(propInfo);
                     if (bindingPropAttr != null)
                     {
-                        string bindingName = propInfo.GetValue(this) as string;
-                        if (bindingName != null)
+                        if (propInfo.GetValue(this) is string bindingName)
                         {
                             answer.AddBinding(bindingPropAttr, bindingName);
                         }
@@ -103,8 +102,8 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
             else if (propVal is IEnumerable && !(propVal is string) && !(propVal is IObjectModelValue))
             {
-                var listInit = new ObjectModelListInitialization();
-                foreach (var o in (propVal as IEnumerable))
+                ObjectModelListInitialization listInit = new ObjectModelListInitialization();
+                foreach (object o in propVal as IEnumerable)
                 {
                     listInit.Add(CreateObject(o));
                 }
@@ -112,7 +111,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
             else if (propVal is Enum)
             {
-                var enumAttr = GetForContext(propVal.GetType().GetTypeInfo().GetCustomAttributes<ObjectModelEnumAttribute>());
+                ObjectModelEnumAttribute enumAttr = GetForContext(propVal.GetType().GetTypeInfo().GetCustomAttributes<ObjectModelEnumAttribute>());
                 if (enumAttr != null)
                 {
                     return new ObjectModelEnum(enumAttr.Name, propVal.ToString());
@@ -139,12 +138,8 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         private T GetForContext<T>(IEnumerable<T> attributes) where T : ObjectModelBaseAttribute
         {
-            var matching = attributes.FirstOrDefault(i => i.Context != null && i.Context.Value == Context);
-            if (matching != null)
-            {
-                return matching;
-            }
-            return attributes.FirstOrDefault(i => i.Context == null);
+            T matching = attributes.FirstOrDefault(i => i.Context != null && i.Context.Value == Context);
+            return matching ?? attributes.FirstOrDefault(i => i.Context == null);
         }
     }
 }

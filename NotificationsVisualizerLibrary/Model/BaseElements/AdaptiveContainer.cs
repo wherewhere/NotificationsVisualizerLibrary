@@ -1,12 +1,8 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
-using NotificationsVisualizerLibrary.Model.BaseElements;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -14,13 +10,10 @@ namespace NotificationsVisualizerLibrary.Model
     {
         public AdaptiveContainer(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
 
-        private static readonly string ATTR_TEXT_STACKING = "hint-textStacking";
+        private const string ATTR_TEXT_STACKING = "hint-textStacking";
 
-        private List<AdaptiveChildElement> _children = new List<AdaptiveChildElement>();
-        internal IReadOnlyList<AdaptiveChildElement> Children
-        {
-            get { return _children; }
-        }
+        private readonly List<AdaptiveChildElement> _children = new List<AdaptiveChildElement>();
+        internal IReadOnlyList<AdaptiveChildElement> Children => _children;
 
         public void SwapChildren(IEnumerable<AdaptiveChildElement> newChildren)
         {
@@ -44,7 +37,6 @@ namespace NotificationsVisualizerLibrary.Model
                 {
                     HandleChild(result, child, baseUri, addImageQuery);
                 }
-
                 catch (IncompleteElementException)
                 {
 
@@ -57,9 +49,10 @@ namespace NotificationsVisualizerLibrary.Model
             if (Context != NotificationType.Toast)
             {
                 // hint-textStacking is optional
-                HintTextStacking hintTextStacking;
-                if (TryParseEnum(result, attributes, ATTR_TEXT_STACKING, out hintTextStacking))
-                    this.HintTextStacking = hintTextStacking;
+                if (TryParseEnum(result, attributes, ATTR_TEXT_STACKING, out HintTextStacking hintTextStacking))
+                {
+                    HintTextStacking = hintTextStacking;
+                }
             }
         }
 
@@ -75,7 +68,9 @@ namespace NotificationsVisualizerLibrary.Model
                     text.Parse(result, child, true);
 
                     if (!result.IsOkForRender())
+                    {
                         return;
+                    }
 
                     if (text.Placement == TextPlacement.Inline && Context == NotificationType.Toast)
                     {
@@ -83,17 +78,9 @@ namespace NotificationsVisualizerLibrary.Model
                         {
                             if (!_hasWarnedAboutTooManyTextElements)
                             {
-                                string warningMessage;
-
-                                if (SupportedFeatures.RS1_Style_Toasts)
-                                {
-                                    warningMessage = "Toasts can only display up to 3 text elements outside of a group/subgroup. Place your additional text elements inside a group/subgroup.";
-                                }
-                                else
-                                {
-                                    warningMessage = "Toasts can only display up to 3 text elements.";
-                                }
-
+                                string warningMessage = SupportedFeatures.RS1_Style_Toasts
+                                    ? "Toasts can only display up to 3 text elements outside of a group/subgroup. Place your additional text elements inside a group/subgroup."
+                                    : "Toasts can only display up to 3 text elements.";
                                 result.AddWarning(warningMessage, GetErrorPositionInfo(child));
                                 _hasWarnedAboutTooManyTextElements = true;
                             }
@@ -102,11 +89,9 @@ namespace NotificationsVisualizerLibrary.Model
                         }
                     }
 
-                    this.Add(text);
+                    Add(text);
 
                     return;
-
-
 
                 case "image":
 
@@ -114,7 +99,9 @@ namespace NotificationsVisualizerLibrary.Model
                     image.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
+                    {
                         return;
+                    }
 
                     if (Context == NotificationType.Toast
                         && !SupportedFeatures.AdaptiveToasts
@@ -133,11 +120,9 @@ namespace NotificationsVisualizerLibrary.Model
                         }
                     }
 
-                    this.Add(image);
+                    Add(image);
 
                     return;
-
-
 
                 case "group":
 
@@ -149,17 +134,19 @@ namespace NotificationsVisualizerLibrary.Model
                         group.Parse(result, child, baseUri, addImageQuery);
 
                         if (!result.IsOkForRender())
+                        {
                             return;
+                        }
 
                         if (group != null)
-                            this.Add(group);
+                        {
+                            Add(group);
+                        }
 
                         return;
                     }
 
                     break;
-
-
 
                 case "progress":
 
@@ -173,7 +160,7 @@ namespace NotificationsVisualizerLibrary.Model
                             return;
                         }
 
-                        this.Add(progress);
+                        Add(progress);
                         return;
                     }
                     break;

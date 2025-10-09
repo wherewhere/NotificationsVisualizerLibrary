@@ -1,34 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using NotificationsVisualizerLibrary.Manifest;
+﻿using NotificationsVisualizerLibrary.Controls;
+using NotificationsVisualizerLibrary.Helpers;
 using NotificationsVisualizerLibrary.Model;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Renderers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
-using Windows.UI.Xaml.Navigation;
-using NotificationsVisualizerLibrary.Model.Enums;
-using Windows.UI.Xaml.Media.Imaging;
-using NotificationsVisualizerLibrary.Controls;
-using System.Diagnostics;
-using Windows.Storage;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Helpers;
-using Windows.UI.Notifications;
-using System.Collections;
-using NotificationsVisualizerLibrary.Renderers;
 using Windows.UI.Xaml.Shapes;
-using NotificationsVisualizerLibrary.Model.BaseElements;
-using NotificationsVisualizerLibrary.Parsers;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -36,14 +18,11 @@ namespace NotificationsVisualizerLibrary
 {
     internal sealed partial class PreviewTileNotificationRaw : UserControl
     {
-        private static int BRANDING_HEIGHT = 28;
+        private const int BRANDING_HEIGHT = 28;
 
-        public PreviewTileNotificationRaw()
-        {
-            this.InitializeComponent();
-        }
+        public PreviewTileNotificationRaw() => InitializeComponent();
 
-        private Model.AdaptiveBinding _binding;
+        private AdaptiveBinding _binding;
         private TileSize _tileSize;
 
         /// <summary>
@@ -56,21 +35,17 @@ namespace NotificationsVisualizerLibrary
         /// <param name="binding"></param>
         public void InitializeFromXml(TileSize tileSize, PreviewTileVisualElements visualElements, bool isBrandingVisible, AdaptiveBinding binding)
         {
-            if (binding == null)
-                throw new ArgumentNullException("binding");
-
-            _binding = binding;
+            _binding = binding ?? throw new ArgumentNullException("binding");
             _tileSize = tileSize;
 
             // Set the background color
             TileContentContainer.Background = new SolidColorBrush(visualElements.BackgroundColor);
-            
-            UsingPeek = false;
 
+            UsingPeek = false;
 
             if (binding.Container != null)
             {
-                var container = binding.Container;
+                AdaptiveContainer container = binding.Container;
 
                 // Calculate the tile margin
                 Thickness margin = new Thickness(GetExternalMargin());
@@ -92,16 +67,16 @@ namespace NotificationsVisualizerLibrary
                 // Render the adaptive
                 TileContent.Child = AdaptiveRenderer.Render(container, margin);
 
-
                 // Background image
-                var allImages = container.GetAllDescendants().OfType<AdaptiveImage>();
-                var backgroundImage = allImages.FirstOrDefault(i => i.Placement == Placement.Background);
-                var peekImage = allImages.FirstOrDefault(i => i.Placement == Placement.Peek);
-                
+                IEnumerable<AdaptiveImage> allImages = container.GetAllDescendants().OfType<AdaptiveImage>();
+                AdaptiveImage backgroundImage = allImages.FirstOrDefault(i => i.Placement == Placement.Background);
+                AdaptiveImage peekImage = allImages.FirstOrDefault(i => i.Placement == Placement.Peek);
+
                 // If we don't support both peek and background, then just peek is used
                 if (!binding.SupportedFeatures.BackgroundAndPeekImage && backgroundImage != null && peekImage != null)
+                {
                     backgroundImage = null;
-
+                }
 
                 // Calculate overlays
                 double backgroundOverlay = 0;
@@ -109,26 +84,29 @@ namespace NotificationsVisualizerLibrary
                 if (backgroundImage != null)
                 {
                     if (backgroundImage.HintOverlay != null)
+                    {
                         backgroundOverlay = backgroundImage.HintOverlay.Value;
+                    }
                     else if (binding.HintOverlay != null)
+                    {
                         backgroundOverlay = binding.HintOverlay.Value;
-
+                    }
                     else
                     {
                         // If there's text on the tile, defaults to 20
-                        if (container.GetAllDescendants().OfType<AdaptiveTextField>().Any())
-                            backgroundOverlay = 20;
-
-                        // Else defaults to no overlay
-                        else
-                            backgroundOverlay = 0;
+                        backgroundOverlay = container.GetAllDescendants().OfType<AdaptiveTextField>().Any()
+                            ? 20
+                            // Else defaults to no overlay
+                            : 0;
                     }
 
                     // If we're ignoring the dev specified background when there's no text on the tile
                     if (!binding.SupportedFeatures.RespectDevSpecifiedBackgroundOverlayEvenWhenNoTextOnTile)
                     {
                         if (!container.GetAllDescendants().OfType<AdaptiveTextField>().Any())
+                        {
                             backgroundOverlay = 0;
+                        }
                     }
                 }
 
@@ -136,16 +114,13 @@ namespace NotificationsVisualizerLibrary
 
                 if (peekImage != null)
                 {
-                    if (peekImage.HintOverlay != null)
-                        peekOverlay = peekImage.HintOverlay.Value;
-
-                    // New in TH2: Binding overlay applies to both peek and background
-                    else if (binding.HintOverlay != null && binding.SupportedFeatures.OverlayForBothBackgroundAndPeek)
-                        peekOverlay = binding.HintOverlay.Value;
-
-                    // Defaults to 0
-                    else
-                        peekOverlay = 0;
+                    peekOverlay = peekImage.HintOverlay != null
+                        ? peekImage.HintOverlay.Value
+                        // New in TH2: Binding overlay applies to both peek and background
+                        : binding.HintOverlay != null && binding.SupportedFeatures.OverlayForBothBackgroundAndPeek
+                        ? binding.HintOverlay.Value
+                        // Defaults to 0
+                        : 0;
                 }
 
 

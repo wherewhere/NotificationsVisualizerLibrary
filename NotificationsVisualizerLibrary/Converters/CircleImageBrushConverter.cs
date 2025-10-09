@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 
@@ -12,15 +8,13 @@ namespace NotificationsVisualizerLibrary.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            ImageSource source = value as ImageSource;
-            if (source != null)
-                return new ImageBrush()
+            return value is ImageSource source
+                ? new ImageBrush()
                 {
                     ImageSource = source,
                     Stretch = Stretch.UniformToFill
-                };
-
-            return value;
+                }
+                : value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

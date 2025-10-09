@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -18,7 +15,12 @@ namespace NotificationsVisualizerLibrary.Controls
 
         #region IsTopLevel
 
-        private static readonly DependencyProperty IsTopLevelProperty = DependencyProperty.Register("IsTopLevel", typeof(bool), typeof(AdaptiveStackPanel), new PropertyMetadata(false, OnIsTopLevelChanged));
+        private static readonly DependencyProperty IsTopLevelProperty =
+            DependencyProperty.Register(
+                nameof(IsTopLevel),
+                typeof(bool),
+                typeof(AdaptiveStackPanel),
+                new PropertyMetadata(false, OnIsTopLevelChanged));
 
         private static void OnIsTopLevelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -27,13 +29,13 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnIsTopLevelChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         public bool IsTopLevel
         {
-            get { return (bool)GetValue(IsTopLevelProperty); }
-            set { SetValue(IsTopLevelProperty, value); }
+            get => (bool)GetValue(IsTopLevelProperty);
+            set => SetValue(IsTopLevelProperty, value);
         }
 
         #endregion
@@ -46,37 +48,40 @@ namespace NotificationsVisualizerLibrary.Controls
             DoesAllContentFit = true;
 
             if (Children == null)
+            {
                 return new Size();
+            }
 
             Size remainingSize = new Size(availableSize.Width, availableSize.Height);
             double totalHeight = 0;
 
             bool first = true;
-            
-            foreach (var child in Children)
+
+            foreach (UIElement child in Children)
             {
                 // If it's wrapping text, we give it infinite height so that we can find out how high a wrapping line of text would be if it could display everything
                 if (IsWrappingText(child))
                 {
                     child.Measure(new Size(remainingSize.Width, double.PositiveInfinity));
                 }
-
                 else
                 {
                     // Add extra height for the bottom margin, since that shouldn't impact the final size on the bottom
                     child.Measure(new Size(remainingSize.Width, EnsureNotNegative(remainingSize.Height + GetBottomMargin(child))));
                 }
-                
+
                 // Top level stack panel allows the first item to display, even if it can't fit
                 bool allowDisplayRegardlessOfFit = IsTopLevel && first;
-                
+
                 // If it's an adaptive stack panel, and it couldn't fit all of its content, we won't end up displaying it (and also stop displaying future children)
                 if (!allowDisplayRegardlessOfFit && child is IAdaptiveControl && !(child as IAdaptiveControl).DoesAllContentFit)
                 {
                     DoesAllContentFit = false;
 
                     if (IsTopLevel)
+                    {
                         break;
+                    }
                 }
 
                 double fullWrappingTextHeight = 0;
@@ -98,20 +103,18 @@ namespace NotificationsVisualizerLibrary.Controls
                     DoesAllContentFit = false;
 
                     if (IsTopLevel && !IsImage(child))
+                    {
                         break;
+                    }
                 }
 
                 // Otherwise, the element fits, we'll include it
                 _numberOfChildrenToDisplay++;
 
-                double consumedHeight;
+                double consumedHeight = IsWrappingText(child) ? fullWrappingTextHeight : actualDesiredHeight;
 
                 // Consumed height for wrapping is the entire height of all the text if it could fit
-                if (IsWrappingText(child))
-                    consumedHeight = fullWrappingTextHeight;
-                else
-                    consumedHeight = actualDesiredHeight;
-                
+
                 // Increase the total height
                 totalHeight += actualDesiredHeight;
 
@@ -121,24 +124,25 @@ namespace NotificationsVisualizerLibrary.Controls
                 first = false;
 
                 if (!DoesAllContentFit)
+                {
                     break;
+                }
             }
 
             double desiredWidth = Children.Count > 0 ? Children.Max(i => i.DesiredSize.Width) : 0;
 
             // Make sure height didn't exceed available height
             if (totalHeight > availableSize.Height)
+            {
                 totalHeight = availableSize.Height;
+            }
 
             return new Size(desiredWidth, totalHeight);
         }
 
         private static double EnsureNotNegative(double value)
         {
-            if (value < 0)
-                return 0;
-
-            return value;
+            return value < 0 ? 0 : value;
         }
 
         private static bool IsWrappingText(UIElement el)
@@ -159,14 +163,16 @@ namespace NotificationsVisualizerLibrary.Controls
         protected override Size ArrangeOverride(Size finalSize)
         {
             if (Children == null)
+            {
                 return finalSize;
+            }
 
             double y = 0;
-            
+
             //for (int i = 0; i < Children.Count; i++)
             for (int i = 0; i < _numberOfChildrenToDisplay; i++)
             {
-                var child = Children[i];
+                UIElement child = Children[i];
 
                 double actualDesiredHeight = GetActualDesiredHeight(child);
                 double actualDesiredHeightWithoutBottomMargin = Math.Max(actualDesiredHeight - Math.Max(GetBottomMargin(child), 0), 0);
@@ -193,7 +199,9 @@ namespace NotificationsVisualizerLibrary.Controls
 
             // And then hide the chidren that shouldn't be displayed
             for (int i = _numberOfChildrenToDisplay; i < Children.Count; i++)
+            {
                 Children[i].Arrange(new Rect()); // Size 0, meaning it doesn't display
+            }
 
             return finalSize;
         }
@@ -213,11 +221,15 @@ namespace NotificationsVisualizerLibrary.Controls
 
                 // If it has a specific height set, enforce that height
                 if (!double.IsNaN(frameworkEl.Height))
+                {
                     actualDesiredHeight = Math.Max(actualDesiredHeight, frameworkEl.Height + GetAffectOfMargin(el));
+                }
 
                 // And if it has a min height set, enforce that min height
                 if (!double.IsNaN(frameworkEl.MinHeight))
+                {
                     actualDesiredHeight = Math.Max(actualDesiredHeight, frameworkEl.MinHeight + GetAffectOfMargin(el));
+                }
             }
 
             //return actualDesiredHeight + GetAffectOfMargin(el);
@@ -236,17 +248,17 @@ namespace NotificationsVisualizerLibrary.Controls
             return 0;
         }
 
-        private static double GetTopMargin(UIElement el)
-        {
-            if (el is FrameworkElement)
-            {
-                FrameworkElement frameworkEl = el as FrameworkElement;
+        //private static double GetTopMargin(UIElement el)
+        //{
+        //    if (el is FrameworkElement)
+        //    {
+        //        FrameworkElement frameworkEl = el as FrameworkElement;
 
-                return frameworkEl.Margin.Top;
-            }
+        //        return frameworkEl.Margin.Top;
+        //    }
 
-            return 0;
-        }
+        //    return 0;
+        //}
 
         private static double GetBottomMargin(UIElement el)
         {

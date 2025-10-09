@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Parsers;
+using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -14,13 +11,13 @@ namespace NotificationsVisualizerLibrary.Model
     {
         public AdaptiveImage(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
 
-        private static readonly string ATTR_IMAGE_SRC = "src";
-        private static readonly string ATTR_IMAGE_ALT = "alt";
-        private static readonly string ATTR_IMAGE_ADDIMAGEQUERY = "addImageQuery";
-        private static readonly string ATTR_IMAGE_HINT_CROP = "hint-crop";
-        private static readonly string ATTR_IMAGE_PLACEMENT = "placement";
-        private static readonly string ATTR_IMAGE_HINT_REMOVE_MARGIN = "hint-removeMargin";
-        private static readonly string ATTR_IMAGE_HINT_ALIGN = "hint-align";
+        private const string ATTR_IMAGE_SRC = "src";
+        private const string ATTR_IMAGE_ALT = "alt";
+        private const string ATTR_IMAGE_ADDIMAGEQUERY = "addImageQuery";
+        private const string ATTR_IMAGE_HINT_CROP = "hint-crop";
+        private const string ATTR_IMAGE_PLACEMENT = "placement";
+        private const string ATTR_IMAGE_HINT_REMOVE_MARGIN = "hint-removeMargin";
+        private const string ATTR_IMAGE_HINT_ALIGN = "hint-align";
         private const string ATTR_HINT_OVERLAY = "hint-overlay";
 
         public string Id { get; set; }
@@ -45,23 +42,17 @@ namespace NotificationsVisualizerLibrary.Model
         private double? _hintOverlay = null;
         public double? HintOverlay
         {
-            get { return _hintOverlay; }
+            get => _hintOverlay;
             set
             {
                 if (value != null)
                 {
-                    if (value.Value < 0)
-                        _hintOverlay = 0;
-
-                    else if (value.Value > 100)
-                        _hintOverlay = 100;
-
-                    else
-                        _hintOverlay = value;
+                    _hintOverlay = value.Value < 0 ? (double?)0 : value.Value > 100 ? (double?)100 : value;
                 }
-
                 else
+                {
                     _hintOverlay = value;
+                }
             }
         }
 
@@ -70,7 +61,6 @@ namespace NotificationsVisualizerLibrary.Model
         /// </summary>
         [ObjectModelProperty("Source")]
         public string Src { get; set; }
-
 
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
@@ -85,8 +75,7 @@ namespace NotificationsVisualizerLibrary.Model
         {
             // AddImageQuery is optional
             {
-                bool val;
-                if (TryParse(result, attributes, ATTR_IMAGE_ADDIMAGEQUERY, out val))
+                if (TryParse(result, attributes, ATTR_IMAGE_ADDIMAGEQUERY, out bool val))
                 {
                     addImageQuery = val; // Overwrite cascaded value if it was specified
                     AddImageQuery = val;
@@ -101,41 +90,48 @@ namespace NotificationsVisualizerLibrary.Model
                 throw new IncompleteElementException();
             }
 
-            this.Src = XmlTemplateParser.ConstructUri(attrSrc.Value, baseUri, addImageQuery);
-
-
+            Src = XmlTemplateParser.ConstructUri(attrSrc.Value, baseUri, addImageQuery);
 
             // alt is optional, I don't use it right now
-            var altAttr = attributes.PopAttribute(ATTR_IMAGE_ALT);
+            XAttribute altAttr = attributes.PopAttribute(ATTR_IMAGE_ALT);
             if (altAttr != null)
             {
                 AlternateText = altAttr.Value;
             }
 
             // placement defaults to inline
-            Placement placement;
-            if (TryParseEnum(result, attributes, ATTR_IMAGE_PLACEMENT, out placement))
-                this.Placement = placement;
+            if (TryParseEnum(result, attributes, ATTR_IMAGE_PLACEMENT, out Placement placement))
+            {
+                Placement = placement;
+            }
 
             switch (placement)
             {
                 case Placement.Background:
 
                     if (SupportedFeatures.CropCircleOnBackgroundImage)
+                    {
                         HandleHintCrop(result, attributes);
+                    }
 
                     if (SupportedFeatures.OverlayForBothBackgroundAndPeek)
+                    {
                         HandleHintOverlay(result, attributes);
+                    }
 
                     break;
 
                 case Placement.Peek:
 
                     if (SupportedFeatures.CropCircleOnPeekImage)
+                    {
                         HandleHintCrop(result, attributes);
+                    }
 
                     if (SupportedFeatures.OverlayForBothBackgroundAndPeek)
+                    {
                         HandleHintOverlay(result, attributes);
+                    }
 
                     break;
 
@@ -144,21 +140,23 @@ namespace NotificationsVisualizerLibrary.Model
 
                 default:
                     HandleHintCrop(result, attributes);
-                    
+
                     // These only apply to tiles, and only to inline images
                     if (Context != NotificationType.Toast
                         || SupportedFeatures.AdaptiveToasts
                         )
                     {
                         // hint-removeMargin is optional
-                        bool hintRemoveMargin;
-                        if (TryParse(result, attributes, ATTR_IMAGE_HINT_REMOVE_MARGIN, out hintRemoveMargin))
-                            this.HintRemoveMargin = hintRemoveMargin;
+                        if (TryParse(result, attributes, ATTR_IMAGE_HINT_REMOVE_MARGIN, out bool hintRemoveMargin))
+                        {
+                            HintRemoveMargin = hintRemoveMargin;
+                        }
 
                         // hint-align is optional
-                        HintImageAlign hintAlign;
-                        if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_ALIGN, out hintAlign))
-                            this.HintAlign = hintAlign;
+                        if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_ALIGN, out HintImageAlign hintAlign))
+                        {
+                            HintAlign = hintAlign;
+                        }
                     }
 
                     break;
@@ -168,16 +166,18 @@ namespace NotificationsVisualizerLibrary.Model
         private void HandleHintOverlay(ParseResult result, AttributesHelper attributes)
         {
             // hint-overlay is optional
-            double hintOverlay;
-            if (TryParse(result, attributes, ATTR_HINT_OVERLAY, out hintOverlay))
-                this.HintOverlay = hintOverlay;
+            if (TryParse(result, attributes, ATTR_HINT_OVERLAY, out double hintOverlay))
+            {
+                HintOverlay = hintOverlay;
+            }
         }
 
         private void HandleHintCrop(ParseResult result, AttributesHelper attributes)
         {
-            HintCrop hintCrop;
-            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_CROP, out hintCrop))
-                this.HintCrop = hintCrop;
+            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_CROP, out HintCrop hintCrop))
+            {
+                HintCrop = hintCrop;
+            }
         }
 
         protected override Array GetSupportedEnums<TEnum>()
@@ -189,7 +189,9 @@ namespace NotificationsVisualizerLibrary.Model
                     case NotificationType.Toast:
 
                         if (SupportedFeatures.RS1_Style_Toasts)
+                        {
                             return new Placement[] { Placement.Inline, Placement.AppLogoOverride, Placement.Hero };
+                        }
 
                         return new Placement[] { Placement.Inline, Placement.AppLogoOverride };
 

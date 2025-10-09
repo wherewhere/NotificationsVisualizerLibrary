@@ -1,10 +1,7 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -36,7 +33,6 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         internal IList<Selection> Children { get; private set; } = new List<Selection>();
 
-
         internal void Parse(ParseResult result, XElement node)
         {
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
@@ -56,7 +52,6 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-
         protected void HandleChild(ParseResult result, XElement child)
         {
             if (Type != InputType.Selection)
@@ -72,12 +67,13 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 selection.Parse(result, child);
 
                 if (!result.IsOkForRender())
+                {
                     throw new IncompleteElementException();
+                }
 
                 Children.Add(selection);
                 selection.Parent = this;
             }
-
             else
             {
                 result.AddError($@"Invalid child ""{child.Name.LocalName}"" found in an input. Selection inputs can only contain selection elements.", GetErrorPositionInfo(child));
@@ -95,31 +91,35 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // type is required
-            InputType type;
-            if (!TryParseEnum(result, attributes, ATTR_TYPE, out type))
+            if (!TryParseEnum(result, attributes, ATTR_TYPE, out InputType type))
             {
                 result.AddErrorButRenderAllowed("type attribute on input element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
                 throw new IncompleteElementException();
             }
 
-            this.Id = attrId.Value;
-            this.Type = type;
-            
+            Id = attrId.Value;
+            Type = type;
 
             // title is optional
-            var attrTitle = attributes.PopAttribute(ATTR_TITLE);
+            XAttribute attrTitle = attributes.PopAttribute(ATTR_TITLE);
             if (attrTitle != null)
-                this.Title = attrTitle.Value;
+            {
+                Title = attrTitle.Value;
+            }
 
             // placeHolderContent is optional
-            var attrPlaceHolderContent = attributes.PopAttribute(ATTR_PLACEHOLDERCONTENT);
+            XAttribute attrPlaceHolderContent = attributes.PopAttribute(ATTR_PLACEHOLDERCONTENT);
             if (attrPlaceHolderContent != null)
-                this.PlaceHolderContent = attrPlaceHolderContent.Value;
+            {
+                PlaceHolderContent = attrPlaceHolderContent.Value;
+            }
 
             // defaultInput is optional
-            var attrDefaultInput = attributes.PopAttribute(ATTR_DEFAULTINPUT);
+            XAttribute attrDefaultInput = attributes.PopAttribute(ATTR_DEFAULTINPUT);
             if (attrDefaultInput != null)
-                this.DefaultInput = attrDefaultInput.Value;
+            {
+                DefaultInput = attrDefaultInput.Value;
+            }
         }
 
         protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
@@ -134,7 +134,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         public override ObjectModelObject ConvertToObject()
         {
-            var obj = base.ConvertToObject();
+            ObjectModelObject obj = base.ConvertToObject();
 
             switch (Type)
             {

@@ -1,11 +1,8 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Model.Enums;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -24,31 +21,19 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         public IList<Input> Inputs { get; private set; } = new List<Input>();
 
         [ObjectModelProperty("Buttons")]
-        public IEnumerable<Action> ButtonsForObjectModel
-        {
-            get
-            {
-                return ActionElements.Where(i => i.Placement == ActionPlacement.Inline);
-            }
-        }
+        public IEnumerable<Action> ButtonsForObjectModel => ActionElements.Where(i => i.Placement == ActionPlacement.Inline);
 
         [ObjectModelProperty("ContextMenuItems")]
-        public IEnumerable<Action> ContextMenuItems
-        {
-            get
-            {
-                return ActionElements.Where(i => i.Placement == ActionPlacement.ContextMenu);
-            }
-        }
+        public IEnumerable<Action> ContextMenuItems => ActionElements.Where(i => i.Placement == ActionPlacement.ContextMenu);
 
         internal void Parse(ParseResult result, XElement node)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
-
-
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -58,13 +43,14 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             foreach (XElement child in node.Elements())
             {
                 if (!result.IsOkForRender())
+                {
                     break;
+                }
 
                 try
                 {
                     HandleChild(result, child);
                 }
-
                 catch (IncompleteElementException)
                 {
 
@@ -75,9 +61,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         internal void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // hint-systemCommands is optional
-            HintSystemCommands hintSystemCommands;
-            if (TryParseEnum(result, attributes, ATTR_HINT_SYSTEMCOMMANDS, out hintSystemCommands))
-                this.HintSystemCommands = hintSystemCommands;
+            if (TryParseEnum(result, attributes, ATTR_HINT_SYSTEMCOMMANDS, out HintSystemCommands hintSystemCommands))
+            {
+                HintSystemCommands = hintSystemCommands;
+            }
         }
 
         protected virtual void HandleChild(ParseResult result, XElement child)
@@ -86,11 +73,13 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             {
                 case "input":
 
-                    var input = new Input(Context, SupportedFeatures);
+                    Input input = new Input(Context, SupportedFeatures);
                     input.Parse(result, child);
 
                     if (!result.IsOkForRender())
+                    {
                         return;
+                    }
 
                     if (Context == NotificationType.Toast)
                     {
@@ -106,14 +95,15 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
                     break;
 
-
                 case "action":
 
-                    var action = new Action(Context, SupportedFeatures);
+                    Action action = new Action(Context, SupportedFeatures);
                     action.Parse(result, child);
 
                     if (!result.IsOkForRender())
+                    {
                         return;
+                    }
 
                     if (Context == NotificationType.Toast)
                     {
@@ -129,7 +119,6 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
                     break;
 
-
                 default:
                     result.AddWarning($"Invalid child {child.Name.LocalName} under actions element.", GetErrorPositionInfo(child));
                     break;
@@ -143,11 +132,15 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
         {
-            foreach (var i in Inputs)
+            foreach (Input i in Inputs)
+            {
                 yield return i;
+            }
 
-            foreach (var a in ActionElements)
+            foreach (Action a in ActionElements)
+            {
                 yield return a;
+            }
         }
 
         public override ObjectModelObject ConvertToObject()

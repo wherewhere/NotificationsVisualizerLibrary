@@ -1,10 +1,7 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using NotificationsVisualizerLibrary.Parsers;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -29,10 +26,12 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         internal void Parse(ParseResult result, XElement node)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
+            {
                 throw new IncompleteElementException();
+            }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
-            
+
             ParseKnownAttributes(node, attributes, result);
 
             HandleRemainingAttributes(attributes, result);
@@ -41,11 +40,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         internal virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // src is optional
-            var srcAttr = attributes.PopAttribute(ATTR_SRC);
+            XAttribute srcAttr = attributes.PopAttribute(ATTR_SRC);
             if (srcAttr != null)
             {
-                Uri srcUri;
-                if (Uri.TryCreate(srcAttr.Value, UriKind.RelativeOrAbsolute, out srcUri))
+                if (Uri.TryCreate(srcAttr.Value, UriKind.RelativeOrAbsolute, out Uri srcUri))
                 {
                     Src = srcUri;
                 }
@@ -56,8 +54,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // loop is optional, must be bool
-            bool boolean;
-            if (TryParse(result, attributes, ATTR_LOOP, out boolean))
+            if (TryParse(result, attributes, ATTR_LOOP, out bool boolean))
             {
                 Loop = boolean;
             }

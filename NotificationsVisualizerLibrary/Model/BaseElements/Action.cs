@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Parsers;
-using NotificationsVisualizerLibrary.Model.Enums;
+using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
@@ -62,37 +59,44 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 throw new IncompleteElementException();
             }
 
-            this.Content = attrContent.Value;
+            Content = attrContent.Value;
 
             // parse activationType, arguments, state
-            base.ParseActivatableElementAttributes(node, attributes, result);
-
+            ParseActivatableElementAttributes(node, attributes, result);
 
             // imageUri is optional
-            var attrImageUri = attributes.PopAttribute(ATTR_IMAGEURI);
+            XAttribute attrImageUri = attributes.PopAttribute(ATTR_IMAGEURI);
             if (attrImageUri != null)
-                this.ImageUri = attrImageUri.Value;
+            {
+                ImageUri = attrImageUri.Value;
+            }
 
             // inputId is optional
-            var attrInputId = attributes.PopAttribute(ATTR_HINT_INPUTID);
+            XAttribute attrInputId = attributes.PopAttribute(ATTR_HINT_INPUTID);
             if (attrInputId != null)
-                this.InputId = attrInputId.Value;
+            {
+                InputId = attrInputId.Value;
+            }
 
-            ActionPlacement placement;
-            if (TryParseEnum(result, attributes, ATTR_PLACEMENT, out placement))
-                this.Placement = placement;
+            if (TryParseEnum(result, attributes, ATTR_PLACEMENT, out ActionPlacement placement))
+            {
+                Placement = placement;
+            }
         }
 
         protected override Array GetSupportedEnums<TEnum>()
         {
             // Override the allowed text placement values, since they depend on OS version / supported features
             if (typeof(TEnum) == typeof(ActionPlacement))
+            {
                 switch (Context)
                 {
                     case NotificationType.Toast:
 
                         if (SupportedFeatures.ToastContextMenu)
+                        {
                             return new ActionPlacement[] { ActionPlacement.Inline, ActionPlacement.ContextMenu };
+                        }
 
                         return new ActionPlacement[] { ActionPlacement.Inline };
 
@@ -101,13 +105,14 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                     default:
                         return new ActionPlacement[] { ActionPlacement.Inline };
                 }
+            }
 
             return base.GetSupportedEnums<TEnum>();
         }
 
         public override ObjectModelObject ConvertToObject()
         {
-            var obj = base.ConvertToObject();
+            ObjectModelObject obj = base.ConvertToObject();
 
             obj.ConstructorValues.Add(new ObjectModelString(Content));
             obj.ConstructorValues.Add(new ObjectModelString(Arguments));
@@ -123,7 +128,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                     {
                         case ActivationType.System:
                             obj.PropertyValues.Clear();
-                            var args = Arguments != null ? Arguments : "";
+                            string args = Arguments ?? "";
                             switch (args.ToLower())
                             {
                                 case "snooze":

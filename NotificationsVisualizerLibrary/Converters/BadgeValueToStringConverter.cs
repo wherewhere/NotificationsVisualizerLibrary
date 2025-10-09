@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Model;
+﻿using NotificationsVisualizerLibrary.Model;
+using System;
 using Windows.UI.Xaml.Data;
 
 namespace NotificationsVisualizerLibrary.Converters
@@ -13,18 +8,12 @@ namespace NotificationsVisualizerLibrary.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is BadgeValue)
-                return (value as BadgeValue).ToString();
-
-            return "";
+            return value is BadgeValue ? (value as BadgeValue).ToString() : "";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            if (value is string)
-                return BadgeValue.Parse(value as string);
-
-            return BadgeValue.Parse(null);
+            return value is string ? BadgeValue.Parse(value as string) : BadgeValue.Parse(null);
         }
     }
 }

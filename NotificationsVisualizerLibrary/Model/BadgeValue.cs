@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NotificationsVisualizerLibrary.Model.Enums;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using System;
 
 namespace NotificationsVisualizerLibrary.Model
 {
@@ -16,28 +12,30 @@ namespace NotificationsVisualizerLibrary.Model
         private BadgeValue(string value)
         {
             if (value == null)
+            {
                 return;
-
-            int integer;
+            }
 
             //if they provided a valid integer
-            if (int.TryParse(value, out integer))
+            if (int.TryParse(value, out int integer))
             {
                 if (integer < 0)
+                {
                     integer = 0;
+                }
 
                 Type = BadgeValueType.integer;
                 Integer = integer;
                 return;
             }
 
-            BadgeValueType type;
-
             //otherwise if they provided a valid glyph value
-            if (Enum.TryParse(value, out type))
+            if (Enum.TryParse(value, out BadgeValueType type))
             {
                 if (type == BadgeValueType.integer)
+                {
                     type = BadgeValueType.none;
+                }
 
                 Type = type;
                 return;
@@ -49,17 +47,11 @@ namespace NotificationsVisualizerLibrary.Model
         public override string ToString()
         {
             if (Type == BadgeValueType.none)
-                return "";
-
-            if (Type == BadgeValueType.integer)
             {
-                if (Integer <= 0)
-                    return "";
-
-                return Integer.ToString();
+                return "";
             }
 
-            return Type.ToString();
+            return Type == BadgeValueType.integer ? Integer <= 0 ? "" : Integer.ToString() : Type.ToString();
         }
 
         public static BadgeValue Parse(string str)
@@ -78,13 +70,7 @@ namespace NotificationsVisualizerLibrary.Model
         /// <returns></returns>
         public bool HasBadge()
         {
-            if (Type == BadgeValueType.none)
-                return false;
-
-            if (Type == BadgeValueType.integer && Integer <= 0)
-                return false;
-
-            return true;
+            return Type != BadgeValueType.none && (Type != BadgeValueType.integer || Integer > 0);
         }
     }
 }

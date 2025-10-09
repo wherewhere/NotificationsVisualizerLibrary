@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using Windows.UI;
 
 namespace NotificationsVisualizerLibrary.Manifest
@@ -22,7 +17,7 @@ namespace NotificationsVisualizerLibrary.Manifest
         [XmlAttribute]
         public string Square30x30Logo
         {
-            get { return _square30X30Logo; }
+            get => _square30X30Logo;
             set
             {
                 _square30X30Logo = value;
@@ -33,7 +28,7 @@ namespace NotificationsVisualizerLibrary.Manifest
         [XmlAttribute]
         public string Square44x44Logo
         {
-            get { return _square44X44Logo; }
+            get => _square44X44Logo;
             set
             {
                 _square44X44Logo = value;

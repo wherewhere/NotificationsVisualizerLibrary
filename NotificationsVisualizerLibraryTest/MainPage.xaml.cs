@@ -1,22 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI;
-using Windows.UI.Notifications;
-using Windows.UI.StartScreen;
+﻿using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
-using Windows.UI.Xaml.Shapes;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -29,22 +14,56 @@ namespace NotificationsVisualizerLibraryTest
     {
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+            SystemNavigationManager.GetForCurrentView().BackRequested += System_BackRequested;
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            Frame.Navigated += On_Navigated;
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            Frame.Navigated -= On_Navigated;
         }
 
         private void ButtonOpenSampleSettingsPage_Click(object sender, RoutedEventArgs e)
         {
-            base.Frame.Navigate(typeof(SampleSettingsPage));
+            Frame.Navigate(typeof(SampleSettingsPage));
         }
 
         private void ButtonOpenUpdateImageInUsePage_Click(object sender, RoutedEventArgs e)
         {
-            base.Frame.Navigate(typeof(UpdateImageInUsePage));
+            Frame.Navigate(typeof(UpdateImageInUsePage));
         }
 
         private void ButtonUpdateLocalImageFrequently_Click(object sender, RoutedEventArgs e)
         {
-            base.Frame.Navigate(typeof(UpdateTileUsingLocalImagesFrequently));
+            Frame.Navigate(typeof(UpdateTileUsingLocalImagesFrequently));
+        }
+        private void On_Navigated(object sender, NavigationEventArgs e)
+        {
+            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility = TryGoBack();
+        }
+
+        private void System_BackRequested(object sender, BackRequestedEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                e.Handled = TryGoBack() == AppViewBackButtonVisibility.Visible;
+            }
+        }
+
+        private AppViewBackButtonVisibility TryGoBack(bool goBack = true)
+        {
+            if (!Dispatcher.HasThreadAccess || !Frame.CanGoBack)
+            { return AppViewBackButtonVisibility.Collapsed; }
+
+            if (goBack) { Frame.GoBack(); }
+            return AppViewBackButtonVisibility.Visible;
         }
     }
 }

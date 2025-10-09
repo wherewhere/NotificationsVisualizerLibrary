@@ -1,11 +1,6 @@
 ﻿using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Renderers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -24,38 +19,29 @@ namespace NotificationsVisualizerLibrary.Controls
             FrameworkElement imageControl;
             BitmapImage bmp = ImageHelper.GetBitmap(imageNode.Src);
 
-            var hintAlign = imageNode.HintAlign;
+            HintImageAlign hintAlign = imageNode.HintAlign;
             if (hintAlign == HintImageAlign.Default)
             {
                 hintAlign = HintImageAlign.Stretch;
             }
 
-            var crop = imageNode.HintCrop;
+            HintCrop crop = imageNode.HintCrop;
             if (crop == HintCrop.Circle)
             {
-                CircleImageStretch stretch;
-
-                if (hintAlign == HintImageAlign.Stretch)
-                {
-                    if (imageNode.SupportedFeatures.CircleImageVerticalStretch)
-                        stretch = CircleImageStretch.UniformToWidthOrHeight;
-                    else
-                        stretch = CircleImageStretch.UniformToWidth;
-                }
-
-                else
-                    stretch = CircleImageStretch.None;
-
+                CircleImageStretch stretch = hintAlign == HintImageAlign.Stretch
+                    ? imageNode.SupportedFeatures.CircleImageVerticalStretch
+                        ? CircleImageStretch.UniformToWidthOrHeight
+                        : CircleImageStretch.UniformToWidth
+                    : CircleImageStretch.None;
                 imageControl = new CircleImage()
                 {
                     Source = bmp,
                     Stretch = stretch
                 };
             }
-
             else
             {
-                imageControl = new Controls.AdaptiveImageControl()
+                imageControl = new AdaptiveImageControl()
                 {
                     Source = bmp,
                     Stretch = hintAlign == HintImageAlign.Stretch ? (isInsideGroup ? AdaptiveImageStretch.UniformToWidth : AdaptiveImageStretch.Uniform) : AdaptiveImageStretch.None

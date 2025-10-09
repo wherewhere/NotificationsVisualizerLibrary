@@ -1,12 +1,9 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using Windows.System.Profile;
-using NotificationsVisualizerLibrary.Helpers;
-using Windows.Media.Core;
 
 namespace NotificationsVisualizerLibrary
 {
@@ -114,13 +111,13 @@ namespace NotificationsVisualizerLibrary
 
         [SupportedIn(TH2)]
         public bool BackgroundAndPeekImage { get; private set; }
-        
+
         [SupportedIn(TH2)]
         public bool CropCircleOnPeekImage { get; private set; }
-        
+
         [SupportedIn(TH2)]
         public bool CropCircleOnBackgroundImage { get; private set; }
-        
+
         [MobileSupportedIn(TH1)]
         [SupportedIn(TH2)]
         public bool SpecialTemplatePeople { get; private set; }
@@ -143,40 +140,48 @@ namespace NotificationsVisualizerLibrary
         [SupportedIn(TH2)]
         public bool RespectDevSpecifiedBackgroundOverlayEvenWhenNoTextOnTile { get; private set; }
 
-
-
         public static FeatureSet Get(DeviceFamily deviceFamily, int buildNumber)
         {
             if (buildNumber == int.MaxValue)
+            {
                 return GetExperimental();
+            }
 
             FeatureSet answer = new FeatureSet();
 
-            var type = answer.GetType();
-            var properties = type.GetRuntimeProperties();
+            Type type = answer.GetType();
+            IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
 
             // Look through all boolean properties
-            foreach (var p in properties.Where(i => i.PropertyType == typeof(bool)))
+            foreach (PropertyInfo p in properties.Where(i => i.PropertyType == typeof(bool)))
             {
-                var supportedIn = p.GetCustomAttributes<SupportedInAttribute>().Where(i => i.GetType() == typeof(SupportedInAttribute)).FirstOrDefault();
+                SupportedInAttribute supportedIn = p.GetCustomAttributes<SupportedInAttribute>().Where(i => i.GetType() == typeof(SupportedInAttribute)).FirstOrDefault();
 
                 // If we're in a build where that exists
                 if (supportedIn != null && buildNumber >= supportedIn.MinVersion.Build)
+                {
                     p.SetValue(answer, true);
+                }
 
                 // If it's device-family specific
                 switch (deviceFamily)
                 {
                     case DeviceFamily.Mobile:
-                        var mobileSupportedIn = p.GetCustomAttribute<MobileSupportedInAttribute>();
+                        MobileSupportedInAttribute mobileSupportedIn = p.GetCustomAttribute<MobileSupportedInAttribute>();
                         if (mobileSupportedIn != null && buildNumber >= mobileSupportedIn.MinVersion.Build)
+                        {
                             p.SetValue(answer, true);
+                        }
+
                         break;
 
                     case DeviceFamily.Desktop:
-                        var desktopSupportedIn = p.GetCustomAttribute<DesktopSupportedInAttribute>();
+                        DesktopSupportedInAttribute desktopSupportedIn = p.GetCustomAttribute<DesktopSupportedInAttribute>();
                         if (desktopSupportedIn != null && buildNumber >= desktopSupportedIn.MinVersion.Build)
+                        {
                             p.SetValue(answer, true);
+                        }
+
                         break;
                 }
             }
@@ -192,11 +197,11 @@ namespace NotificationsVisualizerLibrary
         {
             FeatureSet answer = new FeatureSet();
 
-            var type = answer.GetType();
-            var properties = type.GetRuntimeProperties();
+            Type type = answer.GetType();
+            IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
 
             // Set all properties to true
-            foreach (var p in properties.Where(i => i.PropertyType == typeof(bool)))
+            foreach (PropertyInfo p in properties.Where(i => i.PropertyType == typeof(bool)))
             {
                 p.SetValue(answer, true);
             }

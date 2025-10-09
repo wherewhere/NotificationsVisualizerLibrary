@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -11,12 +9,17 @@ namespace NotificationsVisualizerLibrary.Controls
 {
     internal class CallingButtonsPanel : Panel
     {
-        private static readonly DependencyProperty ColumnSpacingProperty = DependencyProperty.Register("ColumnSpacing", typeof(double), typeof(CallingButtonsPanel), new PropertyMetadata(12.0, OnDisplayPropertyChanged));
+        private static readonly DependencyProperty ColumnSpacingProperty =
+            DependencyProperty.Register(
+                nameof(ColumnSpacing),
+                typeof(double),
+                typeof(CallingButtonsPanel),
+                new PropertyMetadata(12.0, OnDisplayPropertyChanged));
 
         public double ColumnSpacing
         {
-            get { return (double)GetValue(ColumnSpacingProperty); }
-            set { SetValue(ColumnSpacingProperty, value); }
+            get => (double)GetValue(ColumnSpacingProperty);
+            set => SetValue(ColumnSpacingProperty, value);
         }
 
         private static void OnDisplayPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -26,35 +29,41 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
-        private static readonly DependencyProperty ButtonSizeProperty = DependencyProperty.Register("ButtonSize", typeof(double), typeof(CallingButtonsPanel), new PropertyMetadata(72.0, OnDisplayPropertyChanged));
+        private static readonly DependencyProperty ButtonSizeProperty =
+            DependencyProperty.Register(
+                nameof(ButtonSize),
+                typeof(double),
+                typeof(CallingButtonsPanel),
+                new PropertyMetadata(72.0, OnDisplayPropertyChanged));
 
         public double ButtonSize
         {
-            get { return (double)GetValue(ButtonSizeProperty); }
-            set { SetValue(ButtonSizeProperty, value); }
+            get => (double)GetValue(ButtonSizeProperty);
+            set => SetValue(ButtonSizeProperty, value);
         }
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            Size childAvailableSize = new Size(double.PositiveInfinity, this.ButtonSize);
+            Size childAvailableSize = new Size(double.PositiveInfinity, ButtonSize);
 
-            var answerButton = this.GetVisibleCallingButtons().LastOrDefault();
+            CallingButton answerButton = GetVisibleCallingButtons().LastOrDefault();
 
             if (answerButton != null)
+            {
                 answerButton.IsAnswerButton = true;
+            }
 
             bool hasOtherButtons = false;
 
-            foreach (var child in this.GetVisibleCallingButtons())
+            foreach (CallingButton child in GetVisibleCallingButtons())
             {
                 if (child == answerButton)
                 {
-                    child.Measure(new Size(availableSize.Width, this.ButtonSize));
+                    child.Measure(new Size(availableSize.Width, ButtonSize));
                 }
-
                 else
                 {
                     hasOtherButtons = true;
@@ -68,13 +77,13 @@ namespace NotificationsVisualizerLibrary.Controls
             double finalHeight;
 
             if (hasOtherButtons)
-                finalHeight = this.ButtonSize * 2 + 24; // 24 px spacing between normal buttons and answer button
-
-            else if (answerButton != null)
-                finalHeight = this.ButtonSize;
-
+            {
+                finalHeight = (ButtonSize * 2) + 24; // 24 px spacing between normal buttons and answer button
+            }
             else
-                finalHeight = 0;
+            {
+                finalHeight = answerButton != null ? ButtonSize : 0;
+            }
 
             return new Size(
                 availableSize.Width,
@@ -83,9 +92,9 @@ namespace NotificationsVisualizerLibrary.Controls
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            var answerButton = this.GetVisibleCallingButtons().LastOrDefault();
+            CallingButton answerButton = GetVisibleCallingButtons().LastOrDefault();
 
-            int countOfSecondaryButtons = Math.Max(this.GetVisibleCallingButtons().Count() - 1, 0);
+            int countOfSecondaryButtons = Math.Max(GetVisibleCallingButtons().Count() - 1, 0);
 
             double secondaryX = 0;
 
@@ -100,27 +109,25 @@ namespace NotificationsVisualizerLibrary.Controls
             bool hasOtherButtons = false;
 
             int i = 0;
-            foreach (var child in this.GetVisibleCallingButtons())
+            foreach (CallingButton child in GetVisibleCallingButtons())
             {
                 if (child == answerButton)
                 {
                     child.Arrange(new Rect(
                         x: 0,
-                        y: hasOtherButtons ? this.ButtonSize + 24 : 0,
+                        y: hasOtherButtons ? ButtonSize + 24 : 0,
                         width: finalSize.Width,
-                        height: this.ButtonSize));
+                        height: ButtonSize));
                 }
-
                 else
                 {
                     hasOtherButtons = true;
-                    
 
                     child.Arrange(new Rect(
                         new Point(secondaryX, 0),
                         child.DesiredSize));
 
-                    secondaryX += this.ButtonSize + this.ColumnSpacing;
+                    secondaryX += ButtonSize + ColumnSpacing;
 
                     i++;
                 }
@@ -134,30 +141,27 @@ namespace NotificationsVisualizerLibrary.Controls
             return el.Visibility == Visibility.Visible;
         }
 
-        private double GetWidthOfColumns(Size totalSize)
-        {
-            return (totalSize.Width - GetTotalColumnSpacing()) / GetNumberOfColumns();
-        }
+        //private double GetWidthOfColumns(Size totalSize)
+        //{
+        //    return (totalSize.Width - GetTotalColumnSpacing()) / GetNumberOfColumns();
+        //}
 
-        private double GetTotalColumnSpacing()
-        {
-            int numOfCols = GetNumberOfColumns();
+        //private double GetTotalColumnSpacing()
+        //{
+        //    int numOfCols = GetNumberOfColumns();
 
-            if (numOfCols <= 1)
-                return 0;
+        //    return numOfCols <= 1 ? 0 : ColumnSpacing / (numOfCols - 1);
+        //}
 
-            return ColumnSpacing / (numOfCols - 1);
-        }
-
-        private int GetNumberOfColumns()
-        {
-            // Subtract one since the last button is always the "answer" button
-            return Math.Max(this.GetVisibleCallingButtons().Count() - 1, 0);
-        }
+        //private int GetNumberOfColumns()
+        //{
+        //    // Subtract one since the last button is always the "answer" button
+        //    return Math.Max(GetVisibleCallingButtons().Count() - 1, 0);
+        //}
 
         private IEnumerable<CallingButton> GetVisibleCallingButtons()
         {
-            return this.Children.OfType<CallingButton>().Where(i => CountsForDisplay(i));
+            return Children.OfType<CallingButton>().Where(i => CountsForDisplay(i));
         }
     }
 }

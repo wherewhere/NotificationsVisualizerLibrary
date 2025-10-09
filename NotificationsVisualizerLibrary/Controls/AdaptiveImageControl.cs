@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Shapes;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
@@ -17,17 +10,19 @@ namespace NotificationsVisualizerLibrary.Controls
     {
         public bool DoesAllContentFit { get; private set; }
 
-        public AdaptiveImageControl()
-        {
-            this.DefaultStyleKey = typeof(AdaptiveImageControl);
-        }
+        public AdaptiveImageControl() => DefaultStyleKey = typeof(AdaptiveImageControl);
 
-        private static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(BitmapImage), typeof(AdaptiveImageControl), new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
+        private static readonly DependencyProperty SourceProperty =
+            DependencyProperty.Register(
+                nameof(Source),
+                typeof(BitmapImage),
+                typeof(AdaptiveImageControl),
+                new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
 
         public BitmapImage Source
         {
-            get { return GetValue(SourceProperty) as BitmapImage; }
-            set { SetValue(SourceProperty, value); }
+            get => GetValue(SourceProperty) as BitmapImage;
+            set => SetValue(SourceProperty, value);
         }
 
         private static void OnSourcePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -37,24 +32,22 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            BitmapImage oldBitmap = e.OldValue as BitmapImage;
-
-            if (oldBitmap != null)
+            if (e.OldValue is BitmapImage oldBitmap)
+            {
                 oldBitmap.ImageOpened -= Bitmap_ImageOpened;
-            
-            BitmapImage newBitmap = e.NewValue as BitmapImage;
+            }
 
-            if (newBitmap != null)
+            if (e.NewValue is BitmapImage newBitmap)
             {
                 newBitmap.ImageOpened += Bitmap_ImageOpened;
             }
 
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         private void Bitmap_ImageOpened(object sender, RoutedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -62,7 +55,9 @@ namespace NotificationsVisualizerLibrary.Controls
             DoesAllContentFit = true;
 
             if (Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0)
+            {
                 return new Size();
+            }
 
             switch (Stretch)
             {
@@ -70,13 +65,12 @@ namespace NotificationsVisualizerLibrary.Controls
 
                     // If it can't fit, flag it as not fitting
                     if (Source.PixelHeight > availableSize.Height)
+                    {
                         DoesAllContentFit = false;
+                    }
 
                     // We still display it at its full size despite not fitting
                     return new Size(Source.PixelWidth, Source.PixelHeight);
-
-
-
 
                 case AdaptiveImageStretch.UniformToWidth:
 
@@ -94,10 +88,10 @@ namespace NotificationsVisualizerLibrary.Controls
                         return new Size(Source.PixelWidth, Source.PixelHeight);
                     }
 
-
                     if (availableSize.Width <= 0)
+                    {
                         return new Size();
-
+                    }
 
                     Size fitted = FitToWidth(availableSize.Width);
 
@@ -114,18 +108,21 @@ namespace NotificationsVisualizerLibrary.Controls
                 case AdaptiveImageStretch.Uniform:
 
                     if (double.IsInfinity(availableSize.Width) && double.IsInfinity(availableSize.Height))
+                    {
                         return new Size(Source.PixelWidth, Source.PixelHeight);
+                    }
 
                     if (availableSize.Width <= 0 || availableSize.Height <= 0)
+                    {
                         return new Size();
+                    }
 
                     // If need to fit to height
-                    if (double.IsInfinity(availableSize.Width) || (!double.IsInfinity(availableSize.Height) && (Source.PixelHeight / (double)Source.PixelWidth) >= (availableSize.Height / availableSize.Width)))
-                        return FitToHeight(availableSize.Height);
+                    return double.IsInfinity(availableSize.Width) || (!double.IsInfinity(availableSize.Height) && (Source.PixelHeight / (double)Source.PixelWidth) >= (availableSize.Height / availableSize.Width))
+                        ? FitToHeight(availableSize.Height)
 
-                    // Otherwise fit to width
-                    else
-                        return FitToWidth(availableSize.Width);
+                        // Otherwise fit to width
+                        : FitToWidth(availableSize.Width);
 
 
                 default:
@@ -135,64 +132,76 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private Size FitToHeight(double height)
         {
-            if (Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0)
-                return new Size();
-
-            return new Size(Math.Ceiling(height * (Source.PixelWidth / (double)Source.PixelHeight)), height);
+            return Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
+                ? new Size()
+                : new Size(Math.Ceiling(height * (Source.PixelWidth / (double)Source.PixelHeight)), height);
         }
 
         private Size FitToWidth(double width)
         {
-            if (Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0)
-                return new Size();
-
-            return new Size(width, Math.Ceiling(width * (Source.PixelHeight / (double)Source.PixelWidth)));
+            return Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
+                ? new Size()
+                : new Size(width, Math.Ceiling(width * (Source.PixelHeight / (double)Source.PixelWidth)));
         }
 
-        private Size CalculateDesiredSize(Size availableSize)
-        {
-            if (Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0)
-                return new Size();
+        //private Size CalculateDesiredSize(Size availableSize)
+        //{
+        //    if (Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0)
+        //    {
+        //        return new Size();
+        //    }
 
-            switch (Stretch)
-            {
-                case AdaptiveImageStretch.None:
-                    return new Size(Source.PixelWidth, Source.PixelHeight);
+        //    switch (Stretch)
+        //    {
+        //        case AdaptiveImageStretch.None:
+        //            return new Size(Source.PixelWidth, Source.PixelHeight);
 
-                case AdaptiveImageStretch.UniformToWidth:
+        //        case AdaptiveImageStretch.UniformToWidth:
 
-                    if (double.IsInfinity(availableSize.Width))
-                        return new Size(Source.PixelWidth, Source.PixelHeight);
+        //            if (double.IsInfinity(availableSize.Width))
+        //            {
+        //                return new Size(Source.PixelWidth, Source.PixelHeight);
+        //            }
 
-                    if (availableSize.Width <= 0)
-                        return new Size();
+        //            if (availableSize.Width <= 0)
+        //            {
+        //                return new Size();
+        //            }
 
-                    return new Size(availableSize.Width, Math.Ceiling(availableSize.Width * (Source.PixelHeight / (double)Source.PixelWidth)));
-
-
-                case AdaptiveImageStretch.Uniform:
-
-                    if (double.IsInfinity(availableSize.Width) && double.IsInfinity(availableSize.Height))
-                        return new Size(Source.PixelWidth, Source.PixelHeight);
-
-                    if (availableSize.Width <= 0 || availableSize.Height <= 0)
-                        return new Size();
-
-                    // If need to fit to height
-                    if (double.IsInfinity(availableSize.Width) || (!double.IsInfinity(availableSize.Height) && (Source.PixelHeight / (double)Source.PixelWidth) >= (availableSize.Height / availableSize.Width)))
-                        return new Size(Math.Ceiling(availableSize.Height * (Source.PixelWidth / (double)Source.PixelHeight)), availableSize.Height);
-
-                    // Otherwise fit to width
-                    else
-                        return new Size(availableSize.Width, Math.Ceiling(availableSize.Width * (Source.PixelHeight / (double)Source.PixelWidth)));
+        //            return new Size(availableSize.Width, Math.Ceiling(availableSize.Width * (Source.PixelHeight / (double)Source.PixelWidth)));
 
 
-                default:
-                    throw new NotImplementedException();
-            }
-        }
+        //        case AdaptiveImageStretch.Uniform:
 
-        private static readonly DependencyProperty StretchProperty = DependencyProperty.Register("Stretch", typeof(AdaptiveImageStretch), typeof(AdaptiveImageControl), new PropertyMetadata(AdaptiveImageStretch.Uniform, OnStretchPropertyChanged));
+        //            if (double.IsInfinity(availableSize.Width) && double.IsInfinity(availableSize.Height))
+        //            {
+        //                return new Size(Source.PixelWidth, Source.PixelHeight);
+        //            }
+
+        //            if (availableSize.Width <= 0 || availableSize.Height <= 0)
+        //            {
+        //                return new Size();
+        //            }
+
+        //            // If need to fit to height
+        //            return double.IsInfinity(availableSize.Width) || (!double.IsInfinity(availableSize.Height) && (Source.PixelHeight / (double)Source.PixelWidth) >= (availableSize.Height / availableSize.Width))
+        //                ? new Size(Math.Ceiling(availableSize.Height * (Source.PixelWidth / (double)Source.PixelHeight)), availableSize.Height)
+
+        //                // Otherwise fit to width
+        //                : new Size(availableSize.Width, Math.Ceiling(availableSize.Width * (Source.PixelHeight / (double)Source.PixelWidth)));
+
+
+        //        default:
+        //            throw new NotImplementedException();
+        //    }
+        //}
+
+        private static readonly DependencyProperty StretchProperty =
+            DependencyProperty.Register(
+                nameof(Stretch),
+                typeof(AdaptiveImageStretch),
+                typeof(AdaptiveImageControl),
+                new PropertyMetadata(AdaptiveImageStretch.Uniform, OnStretchPropertyChanged));
 
         private static void OnStretchPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -201,13 +210,13 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            base.InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         public AdaptiveImageStretch Stretch
         {
-            get { return (AdaptiveImageStretch)GetValue(StretchProperty); }
-            set { SetValue(StretchProperty, value); }
+            get => (AdaptiveImageStretch)GetValue(StretchProperty);
+            set => SetValue(StretchProperty, value);
         }
     }
 

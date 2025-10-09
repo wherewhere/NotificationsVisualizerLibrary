@@ -1,14 +1,6 @@
-﻿using NotificationsVisualizerLibrary.Controls;
-using NotificationsVisualizerLibrary.Helpers;
-using NotificationsVisualizerLibrary.Model;
-using NotificationsVisualizerLibrary.Model.Enums;
+﻿using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Parsers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Data.Xml.Dom;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -20,7 +12,7 @@ namespace NotificationsVisualizerLibrary.Renderers
     [TemplatePart(Name = "PART_AdaptiveContainer", Type = typeof(Border))]
     public sealed class PreviewAdaptiveContent : Control
     {
-        private static XmlTemplateParser _parser = new XmlTemplateParser();
+        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
         private Border _adaptiveContainer;
 
         public double ExternalMargin { get; set; } = 8;
@@ -28,10 +20,7 @@ namespace NotificationsVisualizerLibrary.Renderers
         /// <summary>
         /// Constructs a new PreviewAdaptiveContent control.
         /// </summary>
-        public PreviewAdaptiveContent()
-        {
-            this.DefaultStyleKey = typeof(PreviewAdaptiveContent);
-        }
+        public PreviewAdaptiveContent() => DefaultStyleKey = typeof(PreviewAdaptiveContent);
 
         /// <summary>
         /// Obtain the AdaptiveStackPanel root
@@ -43,9 +32,11 @@ namespace NotificationsVisualizerLibrary.Renderers
             _adaptiveContainer = GetTemplateChild("PART_AdaptiveContainer") as Border;
 
             if (_adaptiveContainer == null)
+            {
                 throw new NullReferenceException("Template parts not available");
+            }
         }
-        
+
         /// <summary>
         /// Display the adaptive content
         /// </summary>

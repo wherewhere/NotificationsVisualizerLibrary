@@ -1,4 +1,5 @@
-﻿using NotificationsExtensions.Tiles;
+﻿using NotificationsExtensions;
+using NotificationsExtensions.Tiles;
 using NotificationsVisualizerLibrary;
 using System;
 using System.Collections.Generic;
@@ -18,16 +19,13 @@ namespace NotificationsVisualizerLibraryTest
     /// </summary>
     public sealed partial class SampleSettingsPage : Page
     {
-        public SampleSettingsPage()
-        {
-            this.InitializeComponent();
-        }
+        public SampleSettingsPage() => InitializeComponent();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            foreach (var tile in AllTiles())
+            foreach (PreviewTile tile in AllTiles())
             {
                 await UpdateTilePropertiesAsync(tile);
             }
@@ -66,8 +64,8 @@ namespace NotificationsVisualizerLibraryTest
             if (!ToggleShowHomework.IsOn && !ToggleShowExams.IsOn)
             {
                 // Clear current content
-                foreach (var tile in AllTiles())
-                    tile.CreateTileUpdater().Clear();
+                foreach (PreviewTile tile in AllTiles())
+                { tile.CreateTileUpdater().Clear(); }
 
                 return;
             }
@@ -77,7 +75,7 @@ namespace NotificationsVisualizerLibraryTest
             // NOTE: In a real app, this data would probably be dynamically generated from actual user data
 
             // Add the date header
-            bindingContent.Children.Add(new TileText()
+            bindingContent.Children.Add(new AdaptiveText()
             {
                 Text = "In two days"
             });
@@ -85,26 +83,26 @@ namespace NotificationsVisualizerLibraryTest
             // Add exams
             if (ToggleShowExams.IsOn)
             {
-                bindingContent.Children.Add(new TileText()
+                bindingContent.Children.Add(new AdaptiveText()
                 {
                     Text = "Exam 2",
-                    Style = TileTextStyle.CaptionSubtle
+                    HintStyle = AdaptiveTextStyle.CaptionSubtle
                 });
             }
 
             // Add homework
             if (ToggleShowHomework.IsOn)
             {
-                bindingContent.Children.Add(new TileText()
+                bindingContent.Children.Add(new AdaptiveText()
                 {
                     Text = "Bookwork Pg 37-39",
-                    Style = TileTextStyle.CaptionSubtle
+                    HintStyle = AdaptiveTextStyle.CaptionSubtle
                 });
 
-                bindingContent.Children.Add(new TileText()
+                bindingContent.Children.Add(new AdaptiveText()
                 {
                     Text = "Lab report 4",
-                    Style = TileTextStyle.CaptionSubtle
+                    HintStyle = AdaptiveTextStyle.CaptionSubtle
                 });
             }
 
@@ -125,8 +123,10 @@ namespace NotificationsVisualizerLibraryTest
             };
 
             // And send the notification
-            foreach (var tile in AllTiles())
+            foreach (PreviewTile tile in AllTiles())
+            {
                 tile.CreateTileUpdater().Update(new TileNotification(content.GetXml()));
+            }
         }
 
         private void ToggleShowHomework_Toggled(object sender, RoutedEventArgs e)

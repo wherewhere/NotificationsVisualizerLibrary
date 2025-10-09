@@ -1,9 +1,5 @@
 ﻿using NotificationsVisualizerLibrary.Parsers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
@@ -97,8 +93,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // activationType is optional
-            ActivationType type;
-            if (TryParseEnum(result, attributes, ATTR_ACTIVATIONTYPE, out type))
+            if (TryParseEnum(result, attributes, ATTR_ACTIVATIONTYPE, out ActivationType type))
             {
                 ActivationType = type;
             }
