@@ -1,13 +1,8 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model
+namespace NotificationsVisualizerLibrary.Model
 {
     internal abstract class Binding : AdaptiveParentElement
     {
@@ -18,14 +13,8 @@ namespace TemplateVisualizerLibrary.Model
         protected static readonly string ATTR_BINDING_ADDIMAGEQUERY = "addImageQuery";
         protected static readonly string ATTR_BINDING_CONTENTID = "contentId";
 
-
-
-        private List<AdaptiveChildElement> _children = new List<AdaptiveChildElement>();
-        public IReadOnlyList<AdaptiveChildElement> Children
-        {
-            get { return _children; }
-        }
-
+        private readonly List<AdaptiveChildElement> _children = new List<AdaptiveChildElement>();
+        public IReadOnlyList<AdaptiveChildElement> Children => _children;
 
         public void Add(TextField child)
         {
@@ -52,11 +41,9 @@ namespace TemplateVisualizerLibrary.Model
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
             if (!XmlTemplateParser.EnsureNodeOnlyHasElementsAsChildren(result, node))
-                throw new IncompleteElementException();
+            { throw new IncompleteElementException(); }
 
             AttributesHelper attributes = new AttributesHelper(node.Attributes());
-
-            
 
             ParseKnownAttributes(node, attributes, result, baseUri, addImageQuery);
 
@@ -69,7 +56,6 @@ namespace TemplateVisualizerLibrary.Model
                 {
                     HandleChild(result, child, baseUri, addImageQuery);
                 }
-
                 catch (IncompleteElementException)
                 {
 
@@ -77,7 +63,6 @@ namespace TemplateVisualizerLibrary.Model
             }
         }
         
-
         protected virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string baseUri, bool addImageQuery)
         {
             // BaseUri is optional
@@ -89,8 +74,7 @@ namespace TemplateVisualizerLibrary.Model
 
             // AddImageQuery is optional
             {
-                bool val;
-                if (TryParse(result, attributes, ATTR_BINDING_ADDIMAGEQUERY, out val))
+                if (TryParse(result, attributes, ATTR_BINDING_ADDIMAGEQUERY, out bool val))
                     addImageQuery = val; // Overwrite cascaded value if it was specified
             }
         }

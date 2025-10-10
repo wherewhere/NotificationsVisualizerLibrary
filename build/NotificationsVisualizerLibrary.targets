@@ -1,0 +1,106 @@
+<Project>
+
+  <Target Name="_IncludeDesignToolsInPackage" Condition="'$(IncludeDesignToolsBuildOutput)' != 'false'">
+    <!-- Add Build Outputs -->
+    <PropertyGroup>
+      <DesignToolsOutputPath Condition="'$(DesignToolsOutputPath)' == ''">$(OutputPath)Design</DesignToolsOutputPath>
+      <DesignToolsOutputPath Condition="!HasTrailingSlash('$(DesignToolsOutputPath)')">$(DesignToolsOutputPath)\</DesignToolsOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <TfmSpecificBuildOutput Include="$(DesignToolsOutputPath)$(MSBuildProjectName).DesignTools.dll" PackagePath="Design" TargetFramework="$(TargetFramework)" />
+      <TfmSpecificBuildOutput Include="$(DesignToolsOutputPath)$(MSBuildProjectName).DesignTools.pdb" PackagePath="Design" TargetFramework="$(TargetFramework)" />
+    </ItemGroup>
+    <!-- Ensure that the files are present in the specified directory -->
+    <Error Code="WCTDEV01" Text="Design project build outputs not found in '$(DesignToolsOutputPath)' directory. Please check that you've set the output of the Design project(s) to the specified directory." Condition="!Exists('$(DesignToolsOutputPath)')" />
+    <Error Code="WCTDEV02" Text="The file '%(TfmSpecificBuildOutput.Filename)%(TfmSpecificBuildOutput.Extension)' does not exist in '%(TfmSpecificBuildOutput.RelativeDir)' directory." Condition="!Exists('%(TfmSpecificBuildOutput.FullPath)')" />
+    <!-- Set where the Build Outputs should go in the 'lib\<short-tfm>\' -->
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(TfmSpecificBuildOutput->'%(Filename)%(Extension)')">
+        <TargetPath>$([System.IO.Path]::Combine('%(PackagePath)', '%(Filename)%(Extension)'))</TargetPath>
+        <FinalOutputPath>%(FullPath)</FinalOutputPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
+
+  <UsingTask
+    TaskName="DisableWarningsInGeneratedSources"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <GeneratedSource ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            if (GeneratedSource == null)
+            {
+                return _Success;
+            }
+
+            try
+            {
+                Regex regex = new Regex("#line \\d+ \"(.*)\"");
+                foreach (ITaskItem item in GeneratedSource)
+                {
+                    string path = item.ItemSpec;
+                    if (File.Exists(path))
+                    {
+                        const string signature = "// Patched by 'DisableWarningsInGeneratedSources' task";
+                        StringBuilder sb = new StringBuilder();
+                        using (StreamReader reader = new StreamReader(path))
+                        {
+                            string line = reader.ReadLine();
+                            if (line == signature) { continue; }
+                            sb.AppendLine(signature)
+                              .AppendLine("#pragma warning disable")
+                              .AppendLine(line);
+                            while (!reader.EndOfStream)
+                            {
+                                line = reader.ReadLine();
+                                Match match = regex.Match(line);
+                                if (match.Success)
+                                {
+                                    string root = Path.GetDirectoryName(path);
+                                    string file = match.Groups[1].Value;
+                                    if (!File.Exists(Path.Combine(root, file)))
+                                    {
+                                        string temp = $"..\\{file}";
+                                        if (File.Exists(Path.Combine(root, temp)))
+                                        {
+                                            line = line.Replace(file, temp);
+                                        }
+                                        else
+                                        {
+                                            line = line.Replace(match.Value, $"#line default // {file} not found");
+                                        }
+                                    }
+                                }
+                                sb.AppendLine(line);
+                            }
+                        }
+                        File.WriteAllText(path, sb.ToString());
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                Log.LogError("Failed to disable warnings in GeneratedSources.");
+                _Success = false;
+            }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- https://weblogs.asp.net/rweigelt/disable-warnings-in-generated-c-files-of-uwp-app -->
+  <Target Name="_DisableWarningsInGeneratedSources" AfterTargets="MarkupCompilePass2">
+    <ItemGroup>
+      <GeneratedSource Include="**\*.g.cs;**\*.g.i.cs" />
+    </ItemGroup>
+    <Message Text="GeneratedSource: @(GeneratedSource->'&quot;%(Identity)&quot;')" />
+    <DisableWarningsInGeneratedSources GeneratedSource="@(GeneratedSource)" />
+  </Target>
+
+</Project>

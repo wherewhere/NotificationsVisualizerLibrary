@@ -1,0 +1,24 @@
+<Project>
+
+  <PropertyGroup>
+    <Authors>Microsoft;Andrewbares</Authors>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <LangVersion>latest</LangVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/wherewhere/NotificationsVisualizerLibrary</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/wherewhere/NotificationsVisualizerLibrary/releases</PackageReleaseNotes>
+    <PackageTags>notifications;win10;windows 10;tile;tiles;toast;toasts;badge;xml;PreviewTile</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/wherewhere/NotificationsVisualizerLibrary</RepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <PackageDescription>The official NotificationsVisualizerLibrary library from Microsoft. This is for Windows 10 UWP apps using the 10240 SDK or newer.
+Have you ever wanted to display a preview of your live tile in your app's settings page, so the user can instantly see how your various settings will affect their live tile?
+This library allows you to add a PreviewTile control that replicates the Start tile, and fully supports adaptive tile notifications.</PackageDescription>
+  </PropertyGroup>
+
+</Project>

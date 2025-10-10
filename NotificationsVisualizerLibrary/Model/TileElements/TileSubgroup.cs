@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model.TileElements
+namespace NotificationsVisualizerLibrary.Model.TileElements
 {
     internal class TileSubgroup : Subgroup
     {
@@ -20,14 +15,12 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                     text.Parse(result, child);
 
                     if (!result.IsOkForRender())
-                        throw new IncompleteElementException();
+                    { throw new IncompleteElementException(); }
 
                     if (text != null)
-                        this.Add(text);
+                    { Add(text); }
 
                     break;
-
-
 
                 case "image":
 
@@ -35,14 +28,12 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                     image.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
-                        throw new IncompleteElementException();
+                    { throw new IncompleteElementException(); }
 
                     if (image != null)
-                        this.Add(image);
+                    { Add(image); }
 
                     break;
-
-
 
                 default:
                     result.AddWarning($"Invalid child \"{child.Name.LocalName}\" under subgroup element. It will be ignored.", GetErrorPositionInfo(child));

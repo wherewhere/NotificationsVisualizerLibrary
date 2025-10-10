@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NotificationsVisualizerLibrary.Parsers;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model.TileElements
+namespace NotificationsVisualizerLibrary.Model.TileElements
 {
     internal class TileGroup : Group
     {
@@ -18,12 +13,11 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                 subgroup.Parse(result, child, baseUri, addImageQuery);
 
                 if (!result.IsOkForRender())
-                    throw new IncompleteElementException();
+                { throw new IncompleteElementException(); }
 
                 if (subgroup != null)
-                    this.Add(subgroup);
+                { this.Add(subgroup); }
             }
-
             else
             {
                 result.AddError($@"Invalid child ""{child.Name.LocalName}"" found in a group. Groups can only contain subgroups.", GetErrorPositionInfo(child));

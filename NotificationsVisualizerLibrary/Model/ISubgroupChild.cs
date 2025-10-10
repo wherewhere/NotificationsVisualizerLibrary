@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TemplateVisualizerLibrary.Model
+namespace NotificationsVisualizerLibrary.Model
 {
     /// <summary>
-    /// Valid children are <see cref="TemplateVisualizerLibrary.Model.TextField"/> and <see cref="TemplateVisualizerLibrary.Model.Image"/>
+    /// Valid children are <see cref="TextField"/> and <see cref="Image"/>
     /// </summary>
     internal interface ISubgroupChild : AdaptiveChildElement
     {

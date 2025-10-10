@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model.TileElements
+namespace NotificationsVisualizerLibrary.Model.TileElements
 {
     internal class TileBinding : Binding
     {
@@ -24,18 +19,8 @@ namespace TemplateVisualizerLibrary.Model.TileElements
         private double _hintOverlay = 20;
         public double HintOverlay
         {
-            get { return _hintOverlay; }
-            set
-            {
-                if (value < 0)
-                    _hintOverlay = 0;
-
-                else if (value > 100)
-                    _hintOverlay = 100;
-
-                else
-                    _hintOverlay = value;
-            }
+            get => _hintOverlay;
+            set => _hintOverlay = value < 0 ? 0 : value > 100 ? 100 : value;
         }
 
         public string DisplayName { get; set; }
@@ -62,34 +47,30 @@ namespace TemplateVisualizerLibrary.Model.TileElements
             }
 
             // If template is unknown, stop there
-            Template template;
-            if (!TryParseEnum(attrTemplate.Value, out template))
+            if (!TryParseEnum(attrTemplate.Value, out Template template))
             {
                 result.AddWarning($"template attribute \"{attrTemplate.Value}\" is not supported.", GetErrorPositionInfo(attrTemplate));
                 throw new IncompleteElementException();
             }
 
-            this.Template = template;
+            Template = template;
 
             // Branding is optional
-            Branding branding;
-            if (TryParseEnum(result, attributes, ATTR_BINDING_BRANDING, out branding, false)) // not case-sensitive
-                this.Branding = branding;
+            if (TryParseEnum(result, attributes, ATTR_BINDING_BRANDING, out Branding branding, false)) // not case-sensitive
+            { Branding = branding; }
 
             // Display name is optional
             XAttribute attrDisplayName = attributes.PopAttribute(ATTR_BINDING_DISPLAY_NAME, false); // not case-sensitive
             if (attrDisplayName != null)
-                this.DisplayName = attrDisplayName.Value;
+            { DisplayName = attrDisplayName.Value; }
 
             // hint-overlay is optional
-            double hintOverlay;
-            if (TryParse(result, attributes, ATTR_BINDING_HINT_OVERLAY, out hintOverlay))
-                this.HintOverlay = hintOverlay;
+            if (TryParse(result, attributes, ATTR_BINDING_HINT_OVERLAY, out double hintOverlay))
+            { HintOverlay = hintOverlay; }
 
             // hint-textStacking is optional
-            HintTextStacking hintTextStacking;
-            if (TryParseEnum(result, attributes, ATTR_BINDING_HINT_TEXT_STACKING, out hintTextStacking))
-                this.HintTextStacking = hintTextStacking;
+            if (TryParseEnum(result, attributes, ATTR_BINDING_HINT_TEXT_STACKING, out HintTextStacking hintTextStacking))
+            { HintTextStacking = hintTextStacking; }
         }
 
         protected override void HandleChild(ParseResult result, XElement child, string baseUri, bool addImageQuery)
@@ -102,13 +83,11 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                     text.Parse(result, child);
 
                     if (!result.IsOkForRender())
-                        return;
+                    { return; }
 
-                    this.Add(text);
+                    Add(text);
 
                     break;
-
-
 
                 case "image":
 
@@ -116,28 +95,25 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                     image.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
-                        return;
+                    { return; }
                     
                     switch (image.Placement)
                     {
                         case Placement.Peek:
 
-                            if (this.PeekImage != null)
-                                result.AddWarning("Multiple peek images were supplied inside a binding. Only the first will be used.", GetErrorPositionInfo(child));
+                            if (PeekImage != null)
+                            { result.AddWarning("Multiple peek images were supplied inside a binding. Only the first will be used.", GetErrorPositionInfo(child)); }
                             else
-                                this.PeekImage = image;
+                            { PeekImage = image; }
 
                             break;
-
-
 
                         case Placement.Background:
-                            if (this.BackgroundImage != null)
-                                result.AddWarning("Multiple background images were supplied inside a binding. Only the first will be used.", GetErrorPositionInfo(child));
+                            if (BackgroundImage != null)
+                            { result.AddWarning("Multiple background images were supplied inside a binding. Only the first will be used.", GetErrorPositionInfo(child)); }
                             else
-                                this.BackgroundImage = image;
+                            { BackgroundImage = image; }
                             break;
-
 
                         default:
                             Add(image);
@@ -146,22 +122,18 @@ namespace TemplateVisualizerLibrary.Model.TileElements
 
                     break;
 
-
-
                 case "group":
 
                     TileGroup group = new TileGroup();
                     group.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
-                        return;
+                    { return; }
 
                     if (group != null)
-                        this.Add(group);
+                    { Add(group); }
 
                     break;
-
-
 
                 default:
                     result.AddWarning($"Invalid child \"{child.Name.LocalName}\" under binding element. It will be ignored.", GetErrorPositionInfo(child));

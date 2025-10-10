@@ -1,11 +1,9 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model;
+using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Model.TileElements;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
 
 namespace TemplateVisualizerLibrary.Model.TileElements
 {
@@ -31,14 +29,13 @@ namespace TemplateVisualizerLibrary.Model.TileElements
             base.ParseKnownAttributes(attributes, result, baseUri, addImageQuery);
 
             // Branding is optional
-            Branding branding;
-            if (TryParseEnum(result, attributes, ATTR_VISUAL_BRANDING, out branding, false)) // not case-sensitive
-                this.Branding = branding;
+            if (TryParseEnum(result, attributes, ATTR_VISUAL_BRANDING, out Branding branding, false)) // not case-sensitive
+            { Branding = branding; }
 
             // DisplayName is optional
             XAttribute attrDisplayName = attributes.PopAttribute(ATTR_VISUAL_DISPLAY_NAME, false); // not case-sensitive
             if (attrDisplayName != null)
-                this.DisplayName = attrDisplayName.Value;
+            { DisplayName = attrDisplayName.Value; }
         }
 
         protected override void HandleChild(ParseResult result, XElement child, string baseUri, bool addImageQuery)
@@ -49,13 +46,12 @@ namespace TemplateVisualizerLibrary.Model.TileElements
                 binding.Parse(result, child, baseUri, addImageQuery);
 
                 if (!result.IsOkForRender())
-                    throw new IncompleteElementException();
+                { throw new IncompleteElementException(); }
 
-                this.Add(binding);
+                Add(binding);
             }
-
             else
-                result.AddWarning($"Invalid child {child.Name.LocalName} under visual element.", GetErrorPositionInfo(child));
+            { result.AddWarning($"Invalid child {child.Name.LocalName} under visual element.", GetErrorPositionInfo(child)); }
         }
     }
 }

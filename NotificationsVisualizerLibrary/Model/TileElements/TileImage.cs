@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model.TileElements
+namespace NotificationsVisualizerLibrary.Model.TileElements
 {
     internal class TileImage : Image
     {
         private static readonly string ATTR_IMAGE_PLACEMENT = "placement";
         private static readonly string ATTR_IMAGE_HINT_REMOVE_MARGIN = "hint-removeMargin";
         private static readonly string ATTR_IMAGE_HINT_ALIGN = "hint-align";
-
 
         public bool HintRemoveMargin { get; set; } = false;
 
@@ -27,21 +21,18 @@ namespace TemplateVisualizerLibrary.Model.TileElements
             base.ParseKnownAttributes(node, attributes, result, baseUri, addImageQuery);
 
             // placement defaults to inline
-            Placement placement;
-            if (TryParseEnum(result, attributes, ATTR_IMAGE_PLACEMENT, out placement))
+            if (TryParseEnum(result, attributes, ATTR_IMAGE_PLACEMENT, out Placement placement))
             {
-                this.Placement = placement;
+                Placement = placement;
             }
 
             // hint-removeMargin is optional
-            bool hintRemoveMargin;
-            if (TryParse(result, attributes, ATTR_IMAGE_HINT_REMOVE_MARGIN, out hintRemoveMargin))
-                this.HintRemoveMargin = hintRemoveMargin;
+            if (TryParse(result, attributes, ATTR_IMAGE_HINT_REMOVE_MARGIN, out bool hintRemoveMargin))
+            { HintRemoveMargin = hintRemoveMargin; }
 
             // hint-align is optional
-            HintImageAlign hintAlign;
-            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_ALIGN, out hintAlign))
-                this.HintAlign = hintAlign;
+            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_ALIGN, out HintImageAlign hintAlign))
+            { HintAlign = hintAlign; }
         }
     }
 }

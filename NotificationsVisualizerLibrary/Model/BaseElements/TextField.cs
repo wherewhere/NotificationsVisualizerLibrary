@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
+using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model
+namespace NotificationsVisualizerLibrary.Model
 {
     internal class TextField : AdaptiveChildElement, IBindingChild
     {

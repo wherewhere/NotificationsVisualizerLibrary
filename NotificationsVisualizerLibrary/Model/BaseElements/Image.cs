@@ -1,13 +1,9 @@
-﻿using System;
+﻿using NotificationsVisualizerLibrary.Model.Enums;
+using NotificationsVisualizerLibrary.Parsers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using TemplateVisualizerLibrary.Model.Enums;
-using TemplateVisualizerLibrary.Parsers;
 
-namespace TemplateVisualizerLibrary.Model
+namespace NotificationsVisualizerLibrary.Model
 {
     internal class Image : AdaptiveChildElement, IBindingChild
     {
@@ -22,7 +18,6 @@ namespace TemplateVisualizerLibrary.Model
         /// Required
         /// </summary>
         public string Src { get; set; }
-
 
         internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
         {
@@ -43,18 +38,15 @@ namespace TemplateVisualizerLibrary.Model
                 throw new IncompleteElementException();
             }
 
-            this.Src = XmlTemplateParser.ConstructUri(attrSrc.Value, baseUri, addImageQuery);
-
-
+            Src = XmlTemplateParser.ConstructUri(attrSrc.Value, baseUri, addImageQuery);
 
             // alt is optional, I don't use it right now either
             attributes.PopAttribute(ATTR_IMAGE_ALT);
 
 
             // hint-crop is optional
-            HintCrop hintCrop;
-            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_CROP, out hintCrop))
-                this.HintCrop = hintCrop;
+            if (TryParseEnum(result, attributes, ATTR_IMAGE_HINT_CROP, out HintCrop hintCrop))
+            { HintCrop = hintCrop; }
         }
 
         protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()

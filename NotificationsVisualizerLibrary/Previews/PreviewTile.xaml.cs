@@ -573,6 +573,7 @@ namespace NotificationsVisualizerLibrary
         /// Animates the tile to show this new content
         /// </summary>
         /// <param name="el"></param>
+        /// <param name="animate"></param>
         private void ShowElement(UIElement el, bool animate)
         {
             UIElement previous = canvas.Children.LastOrDefault();

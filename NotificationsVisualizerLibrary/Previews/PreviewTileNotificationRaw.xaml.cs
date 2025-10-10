@@ -29,7 +29,6 @@ namespace NotificationsVisualizerLibrary
         /// This should only be called once. For new tile notification content, create a new instance of this element.
         /// </summary>
         /// <param name="tileSize"></param>
-        /// <param name="tilePixelSize"></param>
         /// <param name="visualElements"></param>
         /// <param name="isBrandingVisible"></param>
         /// <param name="binding"></param>

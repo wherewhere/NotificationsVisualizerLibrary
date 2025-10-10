@@ -179,8 +179,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         /// <summary>
         /// Returns false if attribute not found. If attribute is using data binding, configures data binding. Otherwise, passes the attribute value to the provided method.
         /// </summary>
+        /// <param name="result"></param>
         /// <param name="attributes"></param>
         /// <param name="attributeName"></param>
+        /// <param name="bindingName"></param>
         /// <param name="processValue"></param>
         internal bool TryPopAttributeValueWithBinding(ParseResult result, AttributesHelper attributes, string attributeName, out string bindingName, Action<string> processValue)
         {
