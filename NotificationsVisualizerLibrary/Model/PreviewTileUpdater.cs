@@ -8,13 +8,9 @@ namespace NotificationsVisualizerLibrary
     /// </summary>
     public sealed class PreviewTileUpdater
     {
-        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
         private readonly PreviewTile _previewTile;
 
-        internal PreviewTileUpdater(PreviewTile previewTile)
-        {
-            _previewTile = previewTile;
-        }
+        internal PreviewTileUpdater(PreviewTile previewTile) => _previewTile = previewTile;
 
         /// <summary>
         /// Updates the tile with the notification. If the tile payload has an error, the tile will not be updated. The first error, or multiple warnings, will be reported via the returned ParseResult.
@@ -23,7 +19,7 @@ namespace NotificationsVisualizerLibrary
         /// <returns></returns>
         public ParseResult Update(TileNotification notification)
         {
-            ParseResult result = _parser.Parse(notification.Content.GetXml(), _previewTile.CurrFeatureSet);
+            ParseResult result = XmlTemplateParser.Parse(notification.Content.GetXml(), _previewTile.CurrFeatureSet);
 
             if (result.IsOkForRender())
             {
@@ -36,9 +32,6 @@ namespace NotificationsVisualizerLibrary
         /// <summary>
         /// Removes all updates and causes the tile to display its default contentas declared in the tile properties.
         /// </summary>
-        public void Clear()
-        {
-            _previewTile.Show(null, true);
-        }
+        public void Clear() => _previewTile.Show(null, true);
     }
 }

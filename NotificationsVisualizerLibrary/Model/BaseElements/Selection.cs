@@ -5,20 +5,18 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastSelectionBoxItem", NotificationType.Toast)]
-    internal class Selection : AdaptiveChildElement
+    internal partial class Selection(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures)
     {
-        public Selection(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         internal const string ATTR_ID = "id";
         internal const string ATTR_CONTENT = "content";
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
         internal void Parse(ParseResult result, XElement node)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -28,7 +26,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         protected virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // id is required
-            XAttribute attrId = attributes.PopAttribute(ATTR_ID);
+            XAttribute? attrId = attributes.PopAttribute(ATTR_ID);
             if (attrId == null)
             {
                 result.AddError("id attribute on input element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -36,7 +34,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // type is required
-            XAttribute attrContent = attributes.PopAttribute(ATTR_CONTENT);
+            XAttribute? attrContent = attributes.PopAttribute(ATTR_CONTENT);
             if (attrContent == null)
             {
                 result.AddErrorButRenderAllowed("content attribute on input element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -47,21 +45,15 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             Content = attrContent.Value;
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        public override string ToString()
-        {
-            return Content;
-        }
+        public override string? ToString() => Content;
 
         public override ObjectModelObject ConvertToObject()
         {
-            ObjectModelObject obj = base.ConvertToObject();
-            obj.ConstructorValues.Add(new ObjectModelString(Id));
-            obj.ConstructorValues.Add(new ObjectModelString(Content));
+            ObjectModelObject obj = base.ConvertToObject()!;
+            obj.ConstructorValues.Add(new ObjectModelString(Id!));
+            obj.ConstructorValues.Add(new ObjectModelString(Content!));
             return obj;
         }
     }

@@ -11,18 +11,13 @@ namespace NotificationsVisualizerLibrary.Parsers
     /// <summary>
     /// Exception thrown when required attributes from an element is missing, and thus the element cannot exist / should not be added to the parsed model. Error should have already been added, this is just used specifically to make sure that parent doesn't add the item.
     /// </summary>
-    internal class IncompleteElementException : Exception
+    internal class IncompleteElementException : Exception;
+
+    internal sealed partial class AttributesHelper(IEnumerable<XAttribute> attributes) : List<XAttribute>(attributes)
     {
-
-    }
-
-    internal sealed class AttributesHelper : List<XAttribute>
-    {
-        public AttributesHelper(IEnumerable<XAttribute> attributes) : base(attributes) { }
-
-        public XAttribute PopAttribute(string name, bool caseSensitive = true)
+        public XAttribute? PopAttribute(string name, bool caseSensitive = true)
         {
-            XAttribute answer = this.FirstOrDefault(i => i.IsType(name, caseSensitive));
+            XAttribute? answer = this.FirstOrDefault(i => i.IsType(name, caseSensitive));
 
             if (answer != null)
             {
@@ -32,9 +27,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             return answer;
         }
 
-        public string PopAttributeValue(string name, bool caseSensitive = true)
+        public string? PopAttributeValue(string name, bool caseSensitive = true)
         {
-            XAttribute attr = PopAttribute(name, caseSensitive);
+            XAttribute? attr = PopAttribute(name, caseSensitive);
 
             return attr?.Value;
         }
@@ -42,23 +37,17 @@ namespace NotificationsVisualizerLibrary.Parsers
 
     internal static class ExtensionHelpers
     {
-        internal static XElement FirstElementOrDefault(this XContainer currNode, string name)
-        {
-            return currNode.Elements().FirstOrDefault(i => i.IsType(name));
-        }
+        internal static XElement? FirstElementOrDefault(this XContainer currNode, string name) =>
+            currNode.Elements().FirstOrDefault(i => i.IsType(name));
 
-        internal static bool IsType(this XElement node, string name)
-        {
-            return node.Name.LocalName.Equals(name, StringComparison.CurrentCultureIgnoreCase);
-        }
+        internal static bool IsType(this XElement node, string name) =>
+            node.Name.LocalName.Equals(name, StringComparison.CurrentCultureIgnoreCase);
 
-        internal static bool IsType(this XAttribute node, string name, bool caseSensitive = true)
-        {
-            return node.Name.LocalName.Equals(name, caseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase);
-        }
+        internal static bool IsType(this XAttribute node, string name, bool caseSensitive = true) =>
+            node.Name.LocalName.Equals(name, caseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase);
     }
 
-    public sealed class XmlTemplateParser
+    public static class XmlTemplateParser
     {
         private enum NotificationType
         {
@@ -111,70 +100,54 @@ namespace NotificationsVisualizerLibrary.Parsers
         /// </summary>
         private const int PAYLOAD_SIZE_LIMIT = 5119;
 
-        public bool IsMatch(string text)
-        {
-            return text.Trim().StartsWith("<");
-        }
+        public static bool IsMatch(string text) => text.Trim().StartsWith('<');
 
-        internal ParseResult Parse(string text, FeatureSet supportedFeatures)
-        {
-            return Parse(text, NotificationType.Tile, supportedFeatures);
-        }
+        internal static ParseResult Parse(string text, FeatureSet supportedFeatures) =>
+            Parse(text, NotificationType.Tile, supportedFeatures);
 
-        internal ParseResult ParseToast(string text, FeatureSet supportedFeatures)
-        {
-            return Parse(text, NotificationType.Toast, supportedFeatures);
-        }
+        internal static ParseResult ParseToast(string text, FeatureSet supportedFeatures) =>
+            Parse(text, NotificationType.Toast, supportedFeatures);
 
-        internal ParseResult ParseAdaptiveContent(string text, FeatureSet supportedFeatures)
-        {
-            return Parse(text, NotificationType.AdaptiveContent, supportedFeatures);
-        }
+        internal static ParseResult ParseAdaptiveContent(string text, FeatureSet supportedFeatures) =>
+            Parse(text, NotificationType.AdaptiveContent, supportedFeatures);
 
-        private ParseResult Parse(string text, NotificationType type, FeatureSet supportedFeatures)
+        private static ParseResult Parse(string text, NotificationType type, FeatureSet supportedFeatures)
         {
             XDocument doc;
 
             try { doc = XDocument.Load(new StringReader(text), LoadOptions.SetLineInfo); }
             catch { return ParseResult.GenerateForError(new ParseError(ParseErrorType.Error, "Invalid XML", ErrorPositionInfo.Default)); }
 
-            ParseResult result = new ParseResult();
+            ParseResult result = new();
 
             HandlePayloadSizeError(result, text);
 
-            switch (type)
+            return type switch
             {
-                case NotificationType.Tile:
-                    return ParseTile(result, doc, supportedFeatures);
-
-                case NotificationType.Toast:
-                    return ParseToast(result, doc, supportedFeatures);
-
-                case NotificationType.AdaptiveContent:
-                    return ParseAdaptiveContent(result, doc, supportedFeatures);
-
-                default:
-                    throw new NotImplementedException();
-            }
+                NotificationType.Tile => XmlTemplateParser.ParseTile(result, doc, supportedFeatures),
+                NotificationType.Toast => XmlTemplateParser.ParseToast(result, doc, supportedFeatures),
+                NotificationType.AdaptiveContent => XmlTemplateParser.ParseAdaptiveContent(result, doc, supportedFeatures),
+                _ => throw new NotImplementedException(),
+            };
         }
 
-        private ParseResult ParseTile(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
+        private static ParseResult ParseTile(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
         {
-            ParseTileHelper(result, doc, supportedFeatures);
+            XmlTemplateParser.ParseTileHelper(result, doc, supportedFeatures);
 
             return result;
         }
 
-        private ParseResult ParseToast(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
+        private static ParseResult ParseToast(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
         {
             ParseToastHelper(result, doc, supportedFeatures);
 
             return result;
         }
 
-        private ParseResult ParseAdaptiveContent(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
+        private static ParseResult ParseAdaptiveContent(ParseResult result, XDocument doc, FeatureSet supportedFeatures)
         {
-            ParseAdaptiveContentHelper(result, doc.Root, supportedFeatures);
+            ParseAdaptiveContentHelper(result, doc.Root!, supportedFeatures);
 
             return result;
         }
@@ -189,9 +162,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             }
         }
 
-        private void ParseToastHelper(ParseResult result, XContainer parentNode, FeatureSet supportedFeatures)
+        private static void ParseToastHelper(ParseResult result, XContainer parentNode, FeatureSet supportedFeatures)
         {
-            XElement node = parentNode.FirstElementOrDefault("toast");
+            XElement? node = parentNode.FirstElementOrDefault("toast");
 
             if (node == null)
             {
@@ -208,21 +181,21 @@ namespace NotificationsVisualizerLibrary.Parsers
             catch (IncompleteElementException) { }
         }
 
-        private void ParseAdaptiveContentHelper(ParseResult result, XElement parentNode, FeatureSet supportedFeatures)
+        private static void ParseAdaptiveContentHelper(ParseResult result, XElement parentNode, FeatureSet supportedFeatures)
         {
             result.AdaptiveContent = new AdaptiveContainer(Model.NotificationType.AdaptiveContent, supportedFeatures);
 
             try
             {
-                AttributesHelper attributes = new AttributesHelper(parentNode.Attributes());
+                AttributesHelper attributes = new(parentNode.Attributes());
                 result.AdaptiveContent.ContinueParsing(result, parentNode, attributes, parentNode.Elements(), null, false);
             }
             catch (IncompleteElementException) { }
         }
 
-        private void ParseTileHelper(ParseResult result, XContainer parentNode, FeatureSet supportedFeatures)
+        private static void ParseTileHelper(ParseResult result, XContainer parentNode, FeatureSet supportedFeatures)
         {
-            XElement node = parentNode.FirstElementOrDefault("tile");
+            XElement? node = parentNode.FirstElementOrDefault("tile");
 
             if (node == null)
             {
@@ -235,9 +208,9 @@ namespace NotificationsVisualizerLibrary.Parsers
                 return;
             }
 
-            result.Tile = new Model.Tile(supportedFeatures);
+            result.Tile = new Tile(supportedFeatures);
 
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             // tile doesn't have any attributes
 
@@ -246,9 +219,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             ParseVisual(result, result.Tile.Visual, node);
         }
 
-        private void ParseVisual(ParseResult result, Visual into, XElement parentNode)
+        private static void ParseVisual(ParseResult result, Visual into, XElement parentNode)
         {
-            XElement node = parentNode.FirstElementOrDefault("visual");
+            XElement? node = parentNode.FirstElementOrDefault("visual");
 
             if (node == null)
             {
@@ -267,7 +240,7 @@ namespace NotificationsVisualizerLibrary.Parsers
         {
             foreach (string attrName in attributeNames)
             {
-                XAttribute a = attributes.PopAttribute(attrName);
+                XAttribute? a = attributes.PopAttribute(attrName);
                 if (a != null)
                 {
                     result.AddWarning($@"The attribute ""{attrName}"" is a valid attribute, but the Visualizer does not support it.", GetErrorPositionInfo(a));
@@ -294,9 +267,9 @@ namespace NotificationsVisualizerLibrary.Parsers
         }
 
 
-        internal static string ConstructUri(string src, string baseUri, bool addImageQuery)
+        internal static string ConstructUri(string src, string? baseUri, bool addImageQuery)
         {
-            string answer = baseUri + src;
+            string answer = $"{baseUri}{src}";
 
             if (addImageQuery)
             {
@@ -330,9 +303,9 @@ namespace NotificationsVisualizerLibrary.Parsers
                     case XmlNodeType.Text:
 
                         // A text node might just be white space... but if it contains text, that's invalid
-                        if (!string.IsNullOrWhiteSpace((child as XText).Value))
+                        if (!string.IsNullOrWhiteSpace((child as XText)!.Value))
                         {
-                            result.AddError($@"<{node.Name}> elements cannot have text directly as content. Your text was ""{(child as XText).Value.Trim()}"".", GetErrorPositionInfo(child));
+                            result.AddError($@"<{node.Name}> elements cannot have text directly as content. Your text was ""{(child as XText)!.Value.Trim()}"".", GetErrorPositionInfo(child));
                             return false;
                         }
 
@@ -343,20 +316,17 @@ namespace NotificationsVisualizerLibrary.Parsers
             return true;
         }
 
-        //private ParseResult Error(string message)
-        //{
-        //    return ParseResult.GenerateForError(new ParseError(ParseErrorType.Error, message));
-        //}
+        //private static ParseResult Error(string message) => ParseResult.GenerateForError(new ParseError(ParseErrorType.Error, message));
 
-        internal static bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct
+        internal static bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct, Enum
         {
             if (text != null)
             {
-                foreach (object e in Enum.GetValues(typeof(TEnum)))
+                foreach (TEnum e in Enum.GetValues<TEnum>())
                 {
                     if (text.Equals(e.ToString(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        answer = (TEnum)e;
+                        answer = e;
                         return true;
                     }
                 }
@@ -366,9 +336,9 @@ namespace NotificationsVisualizerLibrary.Parsers
             return false;
         }
 
-        internal static bool TryParseEnum<TEnum>(ParseResult result, AttributesHelper attributes, string attributeName, out TEnum answer, bool caseSensitive = true) where TEnum : struct
+        internal static bool TryParseEnum<TEnum>(ParseResult result, AttributesHelper attributes, string attributeName, out TEnum answer, bool caseSensitive = true) where TEnum : struct, Enum
         {
-            XAttribute attr = attributes.PopAttribute(attributeName, caseSensitive);
+            XAttribute? attr = attributes.PopAttribute(attributeName, caseSensitive);
 
             // If it has the attribute
             if (attr != null)
@@ -399,7 +369,7 @@ namespace NotificationsVisualizerLibrary.Parsers
 
         internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out int answer)
         {
-            XAttribute attr = attributes.PopAttribute(attributeName);
+            XAttribute? attr = attributes.PopAttribute(attributeName);
 
             // If it has the attribute
             if (attr != null)
@@ -430,7 +400,7 @@ namespace NotificationsVisualizerLibrary.Parsers
 
         internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out double answer)
         {
-            XAttribute attr = attributes.PopAttribute(attributeName);
+            XAttribute? attr = attributes.PopAttribute(attributeName);
 
             // If it has the attribute
             if (attr != null)
@@ -461,7 +431,7 @@ namespace NotificationsVisualizerLibrary.Parsers
 
         internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out bool answer)
         {
-            XAttribute attr = attributes.PopAttribute(attributeName);
+            XAttribute? attr = attributes.PopAttribute(attributeName);
 
             // If it has the attribute
             if (attr != null)

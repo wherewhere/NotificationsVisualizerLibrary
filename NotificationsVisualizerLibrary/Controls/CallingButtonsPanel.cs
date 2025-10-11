@@ -7,7 +7,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    internal class CallingButtonsPanel : Panel
+    internal partial class CallingButtonsPanel : Panel
     {
         private static readonly DependencyProperty ColumnSpacingProperty =
             DependencyProperty.Register(
@@ -24,13 +24,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnDisplayPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as CallingButtonsPanel).OnDisplayPropertyChanged(e);
+            (sender as CallingButtonsPanel)!.OnDisplayPropertyChanged(e);
         }
 
-        private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e) => InvalidateMeasure();
 
         private static readonly DependencyProperty ButtonSizeProperty =
             DependencyProperty.Register(
@@ -47,14 +44,11 @@ namespace NotificationsVisualizerLibrary.Controls
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            Size childAvailableSize = new Size(double.PositiveInfinity, ButtonSize);
+            Size childAvailableSize = new(double.PositiveInfinity, ButtonSize);
 
-            CallingButton answerButton = GetVisibleCallingButtons().LastOrDefault();
+            CallingButton? answerButton = GetVisibleCallingButtons().LastOrDefault();
 
-            if (answerButton != null)
-            {
-                answerButton.IsAnswerButton = true;
-            }
+            answerButton?.IsAnswerButton = true;
 
             bool hasOtherButtons = false;
 
@@ -92,7 +86,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            CallingButton answerButton = GetVisibleCallingButtons().LastOrDefault();
+            CallingButton? answerButton = GetVisibleCallingButtons().LastOrDefault();
 
             int countOfSecondaryButtons = Math.Max(GetVisibleCallingButtons().Count() - 1, 0);
 
@@ -136,10 +130,7 @@ namespace NotificationsVisualizerLibrary.Controls
             return finalSize;
         }
 
-        private static bool CountsForDisplay(UIElement el)
-        {
-            return el.Visibility == Visibility.Visible;
-        }
+        private static bool CountsForDisplay(UIElement el) => el.Visibility == Visibility.Visible;
 
         //private double GetWidthOfColumns(Size totalSize)
         //{
@@ -159,9 +150,6 @@ namespace NotificationsVisualizerLibrary.Controls
         //    return Math.Max(GetVisibleCallingButtons().Count() - 1, 0);
         //}
 
-        private IEnumerable<CallingButton> GetVisibleCallingButtons()
-        {
-            return Children.OfType<CallingButton>().Where(i => CountsForDisplay(i));
-        }
+        private IEnumerable<CallingButton> GetVisibleCallingButtons() => Children.OfType<CallingButton>().Where(CountsForDisplay);
     }
 }

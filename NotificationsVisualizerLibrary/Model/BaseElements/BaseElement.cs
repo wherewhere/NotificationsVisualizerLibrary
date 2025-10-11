@@ -20,7 +20,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             return XmlTemplateParser.GetErrorPositionInfo(node);
         }
 
-        internal bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct, IConvertible
+        internal bool TryParseEnum<TEnum>(string text, out TEnum answer) where TEnum : struct, Enum, IConvertible
         {
             Array supportedEnums = GetSupportedEnums<TEnum>();
 
@@ -43,14 +43,14 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         private static string GetXmlValueFromEnum(Enum enumValue)
         {
-            XmlValueAttribute xmlValueAttribute = enumValue.GetType().GetTypeInfo().GetDeclaredField(enumValue.ToString()).GetCustomAttribute<XmlValueAttribute>();
+            XmlValueAttribute? xmlValueAttribute = enumValue.GetType().GetTypeInfo().GetDeclaredField(enumValue.ToString())!.GetCustomAttribute<XmlValueAttribute>();
 
             return xmlValueAttribute != null ? xmlValueAttribute.XmlValue : enumValue.ToString();
         }
 
-        internal bool TryParseEnum<TEnum>(ParseResult result, AttributesHelper attributes, string attributeName, out TEnum answer, bool caseSensitive = true) where TEnum : struct, IConvertible
+        internal bool TryParseEnum<TEnum>(ParseResult result, AttributesHelper attributes, string attributeName, out TEnum answer, bool caseSensitive = true) where TEnum : struct, Enum, IConvertible
         {
-            XAttribute attr = attributes.PopAttribute(attributeName, caseSensitive);
+            XAttribute? attr = attributes.PopAttribute(attributeName, caseSensitive);
 
             // If it has the attribute
             if (attr != null)
@@ -83,15 +83,15 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             return false;
         }
 
-        private static bool TryGetUnknownEnum<TEnum>(out TEnum answer)
+        private static bool TryGetUnknownEnum<TEnum>(out TEnum answer) where TEnum : struct, Enum
         {
             // If there's an Unknown enum value, use that
-            foreach (object e in Enum.GetValues(typeof(TEnum)))
+            foreach (TEnum e in Enum.GetValues<TEnum>())
             {
-                string xmlValue = GetXmlValueFromEnum((Enum)e);
+                string xmlValue = GetXmlValueFromEnum(e);
                 if (xmlValue.Equals("unknown", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    answer = (TEnum)e;
+                    answer = e;
                     return true;
                 }
             }
@@ -100,30 +100,22 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             return false;
         }
 
-        private class ConfiguredBinding
+        private class ConfiguredBinding(ParseResult result, string dataName, Action<string> onSet)
         {
-            public string DataName { get; private set; }
-            public Action<string> OnSet { get; private set; }
-            private ParseError _currentError;
-            private readonly ParseResult _result;
+            public string DataName { get; private set; } = dataName;
+            public Action<string> OnSet { get; private set; } = onSet;
+            private ParseError? _currentError;
 
-            public ConfiguredBinding(ParseResult result, string dataName, Action<string> onSet)
+            public void Invoke(string? value)
             {
-                DataName = dataName;
-                OnSet = onSet;
-                _result = result;
-            }
-
-            public void Invoke(string value)
-            {
-                ParseError newError;
+                ParseError? newError;
                 try
                 {
                     // If data binding value wasn't present
                     if (value == null)
                     {
                         // We fall back to displaying {value} or whatever dev provided as plain text
-                        OnSet("{" + DataName + "}");
+                        OnSet($"{{{DataName}}}");
                     }
                     else
                     {
@@ -138,7 +130,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
                 if (_currentError != null && newError == null)
                 {
-                    _result.Errors.Remove(_currentError);
+                    result.Errors.Remove(_currentError);
                     _currentError = null;
                     return;
                 }
@@ -151,29 +143,25 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                     }
                     else if (_currentError != null)
                     {
-                        _result.Errors.Remove(_currentError);
+                        result.Errors.Remove(_currentError);
                     }
 
-                    _result.Add(newError);
+                    result.Add(newError);
                     _currentError = newError;
                 }
             }
         }
 
-        private readonly List<ConfiguredBinding> _bindings = new List<ConfiguredBinding>();
+        private readonly List<ConfiguredBinding> _bindings = [];
 
         internal void SetBinding(ParseResult result, string dataName, Action<string> onSet)
         {
             _bindings.Add(new ConfiguredBinding(result, dataName, onSet));
         }
 
-        internal class ParseErrorException : Exception
+        internal class ParseErrorException(ParseError error) : Exception
         {
-            public ParseError Error { get; private set; }
-            public ParseErrorException(ParseError error)
-            {
-                Error = error;
-            }
+            public ParseError Error { get; private set; } = error;
         }
 
         /// <summary>
@@ -184,14 +172,14 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         /// <param name="attributeName"></param>
         /// <param name="bindingName"></param>
         /// <param name="processValue"></param>
-        internal bool TryPopAttributeValueWithBinding(ParseResult result, AttributesHelper attributes, string attributeName, out string bindingName, Action<string> processValue)
+        internal bool TryPopAttributeValueWithBinding(ParseResult result, AttributesHelper attributes, string attributeName, out string? bindingName, Action<string> processValue)
         {
-            string attrValue = attributes.PopAttributeValue(attributeName);
+            string? attrValue = attributes.PopAttributeValue(attributeName);
 
             return TryProcessBindableValue(result, attrValue, out bindingName, processValue);
         }
 
-        internal bool TryProcessBindableValue(ParseResult result, string value, out string bindingName, Action<string> processValue)
+        internal bool TryProcessBindableValue(ParseResult result, string? value, out string? bindingName, Action<string> processValue)
         {
             bindingName = null;
 
@@ -226,7 +214,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         {
             foreach (ConfiguredBinding binding in _bindings)
             {
-                if (dataBinding.TryGetValue(binding.DataName, out string value))
+                if (dataBinding.TryGetValue(binding.DataName, out string? value))
                 {
                     binding.Invoke(value);
                 }
@@ -237,45 +225,27 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        internal virtual void ApplyDataBinding(DataBindingValues dataBinding)
-        {
-            ApplyDataBindingToThisInstance(dataBinding);
-        }
+        internal virtual void ApplyDataBinding(DataBindingValues dataBinding) => ApplyDataBindingToThisInstance(dataBinding);
 
-        internal static bool IsDataBinding(string attributeValue)
-        {
-            return attributeValue.StartsWith("{") && attributeValue.EndsWith("}");
-        }
+        internal static bool IsDataBinding(string attributeValue) => attributeValue.StartsWith('{') && attributeValue.EndsWith('}');
 
         /// <summary>
         /// Assumes that it is already confirmed to be a data binding name
         /// </summary>
         /// <param name="attributeValue"></param>
         /// <returns></returns>
-        internal static string GetDataBindingName(string attributeValue)
-        {
-            return attributeValue.Substring(1, attributeValue.Length - 2);
-        }
+        internal static string GetDataBindingName(string attributeValue) => attributeValue[1..^1];
 
-        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out int answer)
-        {
-            return XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
-        }
+        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out int answer) =>
+            XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
 
-        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out double answer)
-        {
-            return XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
-        }
+        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out double answer) =>
+            XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
 
-        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out bool answer)
-        {
-            return XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
-        }
+        internal static bool TryParse(ParseResult result, AttributesHelper attributes, string attributeName, out bool answer) =>
+            XmlTemplateParser.TryParse(result, attributes, attributeName, out answer);
 
-        protected virtual Array GetSupportedEnums<TEnum>() where TEnum : struct, IConvertible
-        {
-            return Enum.GetValues(typeof(TEnum));
-        }
+        protected virtual TEnum[] GetSupportedEnums<TEnum>() where TEnum : struct, Enum, IConvertible => Enum.GetValues<TEnum>();
 
         protected void HandleRemainingAttributes(AttributesHelper attributes, ParseResult result)
         {

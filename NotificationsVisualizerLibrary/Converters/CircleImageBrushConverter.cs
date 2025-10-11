@@ -4,22 +4,18 @@ using Windows.UI.Xaml.Media;
 
 namespace NotificationsVisualizerLibrary.Converters
 {
-    public sealed class CircleImageBrushConverter : IValueConverter
+    public sealed partial class CircleImageBrushConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            return value is ImageSource source
+        public object Convert(object value, Type targetType, object parameter, string language) =>
+            value is ImageSource source
                 ? new ImageBrush()
                 {
                     ImageSource = source,
                     Stretch = Stretch.UniformToFill
                 }
                 : value;
-        }
 
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
             throw new NotImplementedException();
-        }
     }
 }

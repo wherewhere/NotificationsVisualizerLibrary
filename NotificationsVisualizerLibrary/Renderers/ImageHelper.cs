@@ -9,7 +9,7 @@ namespace NotificationsVisualizerLibrary.Renderers
 {
     internal static class ImageHelper
     {
-        internal static BitmapImage GetBitmap(string uriStr)
+        internal static BitmapImage? GetBitmap(string? uriStr)
         {
             if (uriStr == null)
             {
@@ -20,7 +20,7 @@ namespace NotificationsVisualizerLibrary.Renderers
             {
                 if (uriStr.StartsWith("ms-appdata", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    BitmapImage img = new BitmapImage();
+                    BitmapImage img = new();
 
                     // I'll set the image after first returning
                     Task dontWait = SetAppDataImageAsync(img, uriStr);
@@ -39,22 +39,20 @@ namespace NotificationsVisualizerLibrary.Renderers
             {
                 StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriStr));
 
-                using (Stream s = await file.OpenStreamForReadAsync())
+                using Stream s = await file.OpenStreamForReadAsync();
+                MemoryStream copiedStream = new((int)s.Length);
+
+                s.CopyTo(copiedStream);
+
+                copiedStream.Position = 0;
+
+                try
                 {
-                    MemoryStream copiedStream = new MemoryStream((int)s.Length);
-
-                    s.CopyTo(copiedStream);
-
-                    copiedStream.Position = 0;
-
-                    try
-                    {
-                        img.SetSource(copiedStream.AsRandomAccessStream());
-                    }
-                    catch
-                    {
-                        copiedStream.Dispose();
-                    }
+                    img.SetSource(copiedStream.AsRandomAccessStream());
+                }
+                catch
+                {
+                    copiedStream.Dispose();
                 }
             }
             catch
@@ -63,9 +61,9 @@ namespace NotificationsVisualizerLibrary.Renderers
             }
         }
 
-        internal static Uri GetImageUri(string uriStr)
+        internal static Uri? GetImageUri(string uriStr)
         {
-            if (!Uri.TryCreate(uriStr, UriKind.Absolute, out Uri uri))
+            if (!Uri.TryCreate(uriStr, UriKind.Absolute, out Uri? uri))
             {
                 try
                 {

@@ -11,15 +11,12 @@ namespace NotificationsVisualizerLibrary.Model
     }
 
     [ObjectModelClass("TileContent")]
-    internal sealed class Tile : AdaptiveParentElement, ITile
+    internal sealed partial class Tile : AdaptiveParentElement, ITile
     {
         [ObjectModelProperty("Visual")]
         public Visual Visual { get; set; }
 
-        public Tile(FeatureSet supportedFeatures) : base(NotificationType.Tile, supportedFeatures)
-        {
-            Visual = new Visual(NotificationType.Tile, SupportedFeatures);
-        }
+        public Tile(FeatureSet supportedFeatures) : base(NotificationType.Tile, supportedFeatures) => Visual = new Visual(NotificationType.Tile, SupportedFeatures);
 
         internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
         {
@@ -29,9 +26,6 @@ namespace NotificationsVisualizerLibrary.Model
             }.Where(i => i != null);
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[0];
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
     }
 }

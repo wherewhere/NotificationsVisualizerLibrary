@@ -2,17 +2,10 @@
 
 namespace NotificationsVisualizerLibrary.Helpers
 {
-    internal class TextStyleInfo
+    internal class TextStyleInfo(string xamlName, int index, TextLineBounds textLineBounds = TextLineBounds.Full)
     {
-        public string XamlName { get; private set; }
-        public int Index { get; private set; }
-        public TextLineBounds TextLineBounds { get; private set; }
-
-        public TextStyleInfo(string xamlName, int index, TextLineBounds textLineBounds = TextLineBounds.Full)
-        {
-            XamlName = xamlName;
-            Index = index;
-            TextLineBounds = textLineBounds;
-        }
+        public string XamlName { get; private set; } = xamlName;
+        public int Index { get; private set; } = index;
+        public TextLineBounds TextLineBounds { get; private set; } = textLineBounds;
     }
 }

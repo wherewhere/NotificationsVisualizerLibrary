@@ -11,11 +11,11 @@ namespace NotificationsVisualizerLibrary.Parsers
         /// <summary>
         /// Only visible internally. The structure of the parsed adaptive tile.
         /// </summary>
-        internal Model.Tile Tile { get; set; }
+        internal Tile? Tile { get; set; }
 
-        internal Toast Toast { get; set; }
+        internal Toast? Toast { get; set; }
 
-        internal AdaptiveContainer AdaptiveContent { get; set; }
+        internal AdaptiveContainer? AdaptiveContent { get; set; }
 
         /// <summary>
         /// Errors found when parsing the payload. If there were only warnings, like specifying two of the same bindings, the tile is still updated.
@@ -43,21 +43,21 @@ namespace NotificationsVisualizerLibrary.Parsers
 
         public static ParseResult GenerateForError(ParseError error)
         {
-            ParseResult result = new ParseResult();
+            ParseResult result = new();
             result.Errors.Add(error);
             return result;
         }
 
         public void AddError(string message, ErrorPositionInfo errorPositionInfo)
         {
-            ParseError error = new ParseError(ParseErrorType.Error, message, errorPositionInfo);
+            ParseError error = new(ParseErrorType.Error, message, errorPositionInfo);
 
             Add(error);
         }
 
         public void AddErrorButRenderAllowed(string message, ErrorPositionInfo errorPositionInfo)
         {
-            ParseError error = new ParseError(ParseErrorType.ErrorButRenderAllowed, message, errorPositionInfo);
+            ParseError error = new(ParseErrorType.ErrorButRenderAllowed, message, errorPositionInfo);
 
             Add(error);
         }
@@ -102,8 +102,8 @@ namespace NotificationsVisualizerLibrary.Parsers
         public string GenerateCSharpCode()
         {
             return Toast != null
-                ? WrapToastForCSharp(Toast.ConvertToObject().ToString())
-                : Tile != null ? WrapTileForCSharp(Tile.ConvertToObject().ToString()) : "Not implemented";
+                ? WrapToastForCSharp(Toast.ConvertToObject()!.ToString())
+                : Tile != null ? WrapTileForCSharp(Tile.ConvertToObject()!.ToString()) : "Not implemented";
         }
 
         private static string WrapTileForCSharp(string original)
@@ -124,10 +124,10 @@ namespace NotificationsVisualizerLibrary.Parsers
         {
             return Toast != null
                 ? IncludeJsNamespaceDeclaration(
-                    Toast.ConvertToObject().ToJavascriptString())
+                    Toast.ConvertToObject()!.ToJavascriptString())
                 : Tile != null
                 ? IncludeJsNamespaceDeclaration(
-                    Tile.ConvertToObject().ToJavascriptString())
+                    Tile.ConvertToObject()!.ToJavascriptString())
                 : "Not implemented";
         }
 
@@ -138,8 +138,8 @@ namespace NotificationsVisualizerLibrary.Parsers
         public string GenerateCPlusPlusCode()
         {
             return Toast != null
-                ? Toast.ConvertToObject().ToCPlusPlusString()
-                : Tile != null ? Tile.ConvertToObject().ToCPlusPlusString() : "Not implemented";
+                ? Toast.ConvertToObject()!.ToCPlusPlusString()
+                : Tile != null ? Tile.ConvertToObject()!.ToCPlusPlusString() : "Not implemented";
         }
 
         private string IncludeJsNamespaceDeclaration(string code)

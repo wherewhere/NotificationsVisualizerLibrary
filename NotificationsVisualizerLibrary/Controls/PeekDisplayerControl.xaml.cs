@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Windows.Foundation;
 using Windows.UI.Xaml;
@@ -30,7 +31,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         internal PreviewTileNotificationRaw PreviewTileNotificationRaw
         {
-            get => GetValue(PreviewTileNotificationRawProperty) as PreviewTileNotificationRaw;
+            get => (GetValue(PreviewTileNotificationRawProperty) as PreviewTileNotificationRaw)!;
             set => SetValue(PreviewTileNotificationRawProperty, value);
         }
 
@@ -47,13 +48,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnPeekStartsOnPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PeekDisplayerControl).OnPeekStartsOnPropertyChanged(e);
+            (sender as PeekDisplayerControl)!.OnPeekStartsOnPropertyChanged(e);
         }
 
-        private void OnPeekStartsOnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InitializePeekAnimation();
-        }
+        private void OnPeekStartsOnPropertyChanged(DependencyPropertyChangedEventArgs e) => InitializePeekAnimation();
 
         public PeekContentDisplayed PeekStartsOn
         {
@@ -116,7 +114,7 @@ namespace NotificationsVisualizerLibrary.Controls
                 Exponent = 4
             };
 
-            DoubleAnimationUsingKeyFrames a = new DoubleAnimationUsingKeyFrames();
+            DoubleAnimationUsingKeyFrames a = new();
 
             // Initial position
             a.KeyFrames.Add(new EasingDoubleKeyFrame()
@@ -159,8 +157,9 @@ namespace NotificationsVisualizerLibrary.Controls
             return a;
         }
 
-        private Storyboard _storyboard;
+        private Storyboard? _storyboard;
 
+        [MemberNotNull(nameof(_storyboard))]
         private void InitializePeekAnimation()
         {
             double normalHeight = PresentationCanvas.ActualHeight;

@@ -2,10 +2,9 @@
 using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Model.Enums;
 using System;
-using Windows.UI;
+using System.Diagnostics.CodeAnalysis;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
@@ -17,24 +16,25 @@ namespace NotificationsVisualizerLibrary.Controls
         private const TextTrimming DefaultTextTrimming = TextTrimming.CharacterEllipsis;
         private const TextWrapping DefaultTextWrapping = TextWrapping.NoWrap;
 
-        public static StyleInfo[] DefaultTypeRamp = new StyleInfo[]
-        {
-            //              LineHeight minLineHeight SFirstGRP TopOffset        { Caption Body Subtitle Title SubHeader Header TitleNumeral SubheaderNumeral HeaderNumeral
-            new StyleInfo(  16,           16.0,          4,         4, new double[] { 0,     1,     0,      0,     0,       0,       4,            8,              8, }), // 0 Caption
-            new StyleInfo(  20,           20.0,          3,         5, new double[] { 1,     0,     0,      0,     0,       0,       5,            7,              8, }),    // 1 Body
-            new StyleInfo(  24,           26.6,          0,         7, new double[] { 2,     1,     0,      0,     0,       0,       6,            8,             10, }),    // 2 Subtitle
-            new StyleInfo(  30,           31.9,          0,         9, new double[] { 1,     1,     0,      0,     0,       0,       7,            9,             12, }),    // 3 Title
-            new StyleInfo(  40,           45.2,          0,        12, new double[] { 1,     4,     0,      0,     0,       0,      10,           12,             15, }),    // 4 SubHeader 
-            new StyleInfo(  56,           61.3,          0,        17, new double[] { 4,     5,     3,      5,     0,       0,      12,           16,             20, }),    // 5 Header
-            new StyleInfo(  17.9,         17.9,          8,         0, new double[] { 3,     4,     5,      6,    10,       0,      12,           14,             16, }),    // 6 TitleNumeral
-            new StyleInfo(  24.8,         24.8,          8,         0, new double[] { 6,     4,     5,      6,     3,       3,      14,           14,             16, }),    // 7 SubHeaderNumeral
-            new StyleInfo(  33.3,         33.3,          8,         0, new double[] { 8,     7,     6,      8,     6,       5,      16,           16,             20, }),    // 8 HeaderNumeral
-        };
+        public static StyleInfo[] DefaultTypeRamp =
+        [
+            //    LineHeight minLineHeight SFirstGRP TopOffset        { Caption Body Subtitle Title SubHeader Header TitleNumeral SubheaderNumeral HeaderNumeral
+            new(  16,           16.0,          4,         4,              [0,     1,     0,      0,     0,       0,       4,            8,              8,]),    // 0 Caption
+            new(  20,           20.0,          3,         5,              [1,     0,     0,      0,     0,       0,       5,            7,              8,]),    // 1 Body
+            new(  24,           26.6,          0,         7,              [2,     1,     0,      0,     0,       0,       6,            8,             10,]),    // 2 Subtitle
+            new(  30,           31.9,          0,         9,              [1,     1,     0,      0,     0,       0,       7,            9,             12,]),    // 3 Title
+            new(  40,           45.2,          0,        12,              [1,     4,     0,      0,     0,       0,      10,           12,             15,]),    // 4 SubHeader 
+            new(  56,           61.3,          0,        17,              [4,     5,     3,      5,     0,       0,      12,           16,             20,]),    // 5 Header
+            new(  17.9,         17.9,          8,         0,              [3,     4,     5,      6,    10,       0,      12,           14,             16,]),    // 6 TitleNumeral
+            new(  24.8,         24.8,          8,         0,              [6,     4,     5,      6,     3,       3,      14,           14,             16,]),    // 7 SubHeaderNumeral
+            new(  33.3,         33.3,          8,         0,              [8,     7,     6,      8,     6,       5,      16,           16,             20,]),    // 8 HeaderNumeral
+        ];
 
         public static TextStyleInfo DefaultStyleInfo;
 
         private static TextStylesMap _stylesMap;
 
+        [MemberNotNull(nameof(_stylesMap), nameof(DefaultStyleInfo))]
         private static void EnsureStyleTable()
         {
             if (DefaultTypeRamp.Length != AdaptiveConstants.KNOWN_TEXT_STYLES_COUNT)
@@ -58,10 +58,7 @@ namespace NotificationsVisualizerLibrary.Controls
             _stylesMap.Add(new TextStyleInfoPair("headernumeral", new TextStyleInfo("HeaderTextBlockStyle", 8, TextLineBounds.Tight)));
         }
 
-        static AdaptiveGenerator_Text()
-        {
-            EnsureStyleTable();
-        }
+        static AdaptiveGenerator_Text() => EnsureStyleTable();
 
         private static TextStyleInfo GetStyleIndex(string styleName, out bool subtle)
         {
@@ -72,10 +69,10 @@ namespace NotificationsVisualizerLibrary.Controls
             subtle = styleName.EndsWith(subtleSuffix);
             if (subtle)
             {
-                styleName = styleName.Substring(0, styleName.Length - subtleSuffix.Length);
+                styleName = styleName[..^subtleSuffix.Length];
             }
 
-            TextStyleInfo textStyleInfo = _stylesMap.Find(styleName);
+            TextStyleInfo? textStyleInfo = _stylesMap.Find(styleName);
 
             // If not found
             if (textStyleInfo == null)
@@ -120,7 +117,7 @@ namespace NotificationsVisualizerLibrary.Controls
         {
             //lineStyleIndex = -1;
 
-            TextBlock spTextBlock = new TextBlock()
+            TextBlock spTextBlock = new()
             {
                 //Foreground = TextBlockBrush,
                 Text = textField.Text,
@@ -144,19 +141,13 @@ namespace NotificationsVisualizerLibrary.Controls
             lineStyleIndex = textStyleInfo.Index;
 
             // Default top margin values for textblocks
-            double topMargin;
-            if (isFirst)
-            {
-                topMargin = isFirstGroup
+            double topMargin = isFirst
+                ? isFirstGroup
                     ? DefaultTypeRamp[lineStyleIndex].FirstGroupMargin - AdaptiveConstants.DefaultExternalMargin
-                    : topMarginOffset - DefaultTypeRamp[lineStyleIndex].TopOffset;
-            }
-            else
-            {
-                topMargin = previousLineStyleIndex != -1
+                    : topMarginOffset - DefaultTypeRamp[lineStyleIndex].TopOffset
+                : previousLineStyleIndex != -1
                     ? DefaultTypeRamp[previousLineStyleIndex].TopMarginValues[lineStyleIndex]
                     : needsImageMargin ? AdaptiveConstants.DefaultImageMargin : DefaultTypeRamp[0].TopMarginValues[lineStyleIndex];
-            }
 
             // Override if needed line height
             if (DefaultTypeRamp[lineStyleIndex].LineHeightOverride > 0.0)
@@ -177,21 +168,12 @@ namespace NotificationsVisualizerLibrary.Controls
             }
 
             // Align
-            switch (textField.HintAlign)
+            spTextBlock.TextAlignment = textField.HintAlign switch
             {
-                case HintAlign.Center:
-                    spTextBlock.TextAlignment = TextAlignment.Center;
-                    break;
-
-                case HintAlign.Right:
-                    spTextBlock.TextAlignment = TextAlignment.Right;
-                    break;
-
-                case HintAlign.Left:
-                default:
-                    spTextBlock.TextAlignment = TextAlignment.Left;
-                    break;
-            }
+                HintAlign.Center => TextAlignment.Center,
+                HintAlign.Right => TextAlignment.Right,
+                _ => TextAlignment.Left,
+            };
             spTextBlock.OpticalMarginAlignment = DefaultOpticalMarginAlignment;
             spTextBlock.TextLineBounds = textStyleInfo.TextLineBounds;
             spTextBlock.TextTrimming = DefaultTextTrimming;
@@ -200,15 +182,13 @@ namespace NotificationsVisualizerLibrary.Controls
             spTextBlock.MinHeight = textField.HintMinLines.GetValueOrDefault(1) * DefaultTypeRamp[lineStyleIndex].MinLineHeight;
 
             // Margins
-            Thickness margins = new Thickness(0, topMargin, 0, 0);
+            Thickness margins = new(0, topMargin, 0, 0);
             spTextBlock.Margin = margins;
 
             return spTextBlock;
         }
 
-        private static void SetStyle(TextBlock textBlock, string xamlStyleName)
-        {
+        private static void SetStyle(TextBlock textBlock, string xamlStyleName) =>
             textBlock.Style = (Style)Application.Current.Resources[xamlStyleName];
-        }
     }
 }

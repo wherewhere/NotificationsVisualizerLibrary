@@ -4,10 +4,10 @@ using Windows.UI;
 
 namespace NotificationsVisualizerLibrary.Helpers
 {
-    public sealed class ColorConverter
+    public sealed partial class ColorConverter
     {
         // From http://blog.tedd.no/2013/09/18/converting-hex-string-into-color-windows-phone/
-        private static readonly Regex _hexColorMatchRegex = new Regex("^#?(?<a>[a-z0-9][a-z0-9])?(?<r>[a-z0-9][a-z0-9])(?<g>[a-z0-9][a-z0-9])(?<b>[a-z0-9][a-z0-9])$", RegexOptions.IgnoreCase);
+        private static readonly Regex _hexColorMatchRegex = CreateRegex();
         public static Color GetColorFromHex(string hexColorString)
         {
             if (hexColorString == null)
@@ -35,5 +35,12 @@ namespace NotificationsVisualizerLibrary.Helpers
             g = Convert.ToByte(match.Groups["g"].Value, 16);
             return Color.FromArgb(a, r, g, b);
         }
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex("^#?(?<a>[a-z0-9][a-z0-9])?(?<r>[a-z0-9][a-z0-9])(?<g>[a-z0-9][a-z0-9])(?<b>[a-z0-9][a-z0-9])$", RegexOptions.IgnoreCase)]
+        private static partial Regex CreateRegex();
+#else
+        private static Regex CreateRegex() => new("^#?(?<a>[a-z0-9][a-z0-9])?(?<r>[a-z0-9][a-z0-9])(?<g>[a-z0-9][a-z0-9])(?<b>[a-z0-9][a-z0-9])$", RegexOptions.IgnoreCase);
+#endif
     }
 }

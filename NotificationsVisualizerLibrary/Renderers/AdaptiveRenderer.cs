@@ -15,27 +15,16 @@ namespace NotificationsVisualizerLibrary.Renderers
     {
         public static UIElement Render(AdaptiveContainer adaptiveContainer, Thickness externalMargin)
         {
-            AdaptiveStackPanel answer = new AdaptiveStackPanel()
+            AdaptiveStackPanel answer = new()
             {
                 IsTopLevel = true
             };
-
-            VerticalAlignment valignment;
-            switch (adaptiveContainer.HintTextStacking)
+            VerticalAlignment valignment = adaptiveContainer.HintTextStacking switch
             {
-                case HintTextStacking.Bottom:
-                    valignment = VerticalAlignment.Bottom;
-                    break;
-
-                case HintTextStacking.Center:
-                    valignment = VerticalAlignment.Center;
-                    break;
-
-                default:
-                    valignment = VerticalAlignment.Top;
-                    break;
-            }
-
+                HintTextStacking.Bottom => VerticalAlignment.Bottom,
+                HintTextStacking.Center => VerticalAlignment.Center,
+                _ => VerticalAlignment.Top,
+            };
             answer.VerticalAlignment = valignment;
 
             //double topMarginOffset = externalMargin.Top;
@@ -49,7 +38,7 @@ namespace NotificationsVisualizerLibrary.Renderers
                 externalMargin: externalMargin);
 
             // If the first child is a group/subgroup, we set the top margin to 0
-            if (answer.Children.FirstOrDefault() is AdaptiveStackPanel || answer.Children.FirstOrDefault() is AdaptiveGrid)
+            if (answer.Children.FirstOrDefault() is AdaptiveStackPanel or AdaptiveGrid)
             {
                 externalMargin.Top = 0;
             }
@@ -64,17 +53,12 @@ namespace NotificationsVisualizerLibrary.Renderers
         /// </summary>
         /// <param name="child"></param>
         /// <returns></returns>
-        private static bool IsChildInline(object child)
-        {
-            return child is AdaptiveImage
-                ? (child as AdaptiveImage).Placement == Placement.Inline
-                : !(child is AdaptiveTextField) || (child as AdaptiveTextField).Placement == TextPlacement.Inline;
-        }
+        private static bool IsChildInline<T>(T child) where T : AdaptiveChildElement =>
+            child is AdaptiveImage image
+                ? image.Placement == Placement.Inline
+                : child is not AdaptiveTextField field || field.Placement == TextPlacement.Inline;
 
-        private static Brush GetActionBackgroundBrush()
-        {
-            return new SolidColorBrush(Color.FromArgb(30, 128, 128, 128));
-        }
+        private static SolidColorBrush GetActionBackgroundBrush() => new(Color.FromArgb(30, 128, 128, 128));
 
         private static void GenerateItems(
             IEnumerable<AdaptiveChildElement> children,
@@ -88,61 +72,54 @@ namespace NotificationsVisualizerLibrary.Renderers
             bool isFirst = true;
             bool needsImageMargin = false;
 
-            foreach (AdaptiveChildElement node in children.Where(i => IsChildInline(i)))
+            foreach (AdaptiveChildElement node in children.Where(IsChildInline))
             {
-                FrameworkElement uiChild = null;
+                FrameworkElement? uiChild = null;
 
-                // If text
-                if (node is AdaptiveTextField)
+                switch (node)
                 {
-                    uiChild = AdaptiveGenerator_Text.GenerateText(
-                        textField: node as AdaptiveTextField,
-                        isFirst: isFirst,
-                        isFirstGroup: isFirstGroup,
-                        previousLineStyleIndex: previousLineStyleIndex,
-                        topMarginOffset: topMarginOffset,
-                        needsImageMargin: needsImageMargin,
-                        lineStyleIndex: out previousLineStyleIndex);
-                    needsImageMargin = false;
-                }
-
-                // If image
-                else if (node is AdaptiveImage)
-                {
-                    AdaptiveImage imageNode = node as AdaptiveImage;
-
-                    // An image on top of first group have 0 margin
-                    // An image on top of another group should respond to topMarginOffset
-                    // An image not on top of a group should have DefaultImageMargin
-                    double topMargin = isFirst ? (isFirstGroup ? 0.0 : topMarginOffset) : AdaptiveConstants.DefaultImageMargin;
-
-                    uiChild = AdaptiveGenerator_Image.GenerateImage(
-                        imageNode: imageNode,
-                        topMargin: topMargin,
-                        isInsideGroup: isInsideGroup,
-                        needsMargin: out needsImageMargin);
-                    previousLineStyleIndex = -1;
-                }
-
-                // If group
-                else if (node is AdaptiveGroup)
-                {
-                    uiChild = GenerateGroup(
-                        group: node as AdaptiveGroup,
-                        isFirstGroup: isFirstGroup && isFirst,
-                        needsImageMargin: needsImageMargin,
-                        externalMargin: externalMargin);
-                    needsImageMargin = false;
-                    previousLineStyleIndex = -1;
-                }
-
-                // If progress bar
-                else if (node is AdaptiveProgress)
-                {
-                    uiChild = AdaptiveGenerator_Progress.Generate(
-                        progress: node as AdaptiveProgress);
-                    needsImageMargin = false;
-                    previousLineStyleIndex = -1;
+                    // If text
+                    case AdaptiveTextField field:
+                        uiChild = AdaptiveGenerator_Text.GenerateText(
+                            textField: field,
+                            isFirst: isFirst,
+                            isFirstGroup: isFirstGroup,
+                            previousLineStyleIndex: previousLineStyleIndex,
+                            topMarginOffset: topMarginOffset,
+                            needsImageMargin: needsImageMargin,
+                            lineStyleIndex: out previousLineStyleIndex);
+                        needsImageMargin = false;
+                        break;
+                    // If image
+                    case AdaptiveImage imageNode:
+                        // An image on top of first group have 0 margin
+                        // An image on top of another group should respond to topMarginOffset
+                        // An image not on top of a group should have DefaultImageMargin
+                        double topMargin = isFirst ? (isFirstGroup ? 0.0 : topMarginOffset) : AdaptiveConstants.DefaultImageMargin;
+                        uiChild = AdaptiveGenerator_Image.GenerateImage(
+                            imageNode: imageNode,
+                            topMargin: topMargin,
+                            isInsideGroup: isInsideGroup,
+                            needsMargin: out needsImageMargin);
+                        previousLineStyleIndex = -1;
+                        break;
+                    // If group
+                    case AdaptiveGroup group:
+                        uiChild = GenerateGroup(
+                            group: group,
+                            isFirstGroup: isFirstGroup && isFirst,
+                            needsImageMargin: needsImageMargin,
+                            externalMargin: externalMargin);
+                        needsImageMargin = false;
+                        previousLineStyleIndex = -1;
+                        break;
+                    // If progress bar
+                    case AdaptiveProgress progress:
+                        uiChild = AdaptiveGenerator_Progress.Generate(
+                            progress: progress);
+                        needsImageMargin = false;
+                        previousLineStyleIndex = -1;
+                        break;
                 }
 
                 if (uiChild != null)
@@ -153,7 +130,7 @@ namespace NotificationsVisualizerLibrary.Renderers
             }
         }
 
-        private static FrameworkElement GenerateGroup(
+        private static FrameworkElement? GenerateGroup(
             AdaptiveGroup group,
             bool isFirstGroup,
             bool needsImageMargin,
@@ -180,7 +157,7 @@ namespace NotificationsVisualizerLibrary.Renderers
                 }
             }
 
-            Thickness groupMargin = new Thickness(
+            Thickness groupMargin = new(
                 0,
                 isFirstGroup ? 0.0 : AdaptiveConstants.DefaultGroupTopMargin,
                 0,
@@ -207,7 +184,6 @@ namespace NotificationsVisualizerLibrary.Renderers
 
                 return sp;
             }
-
             else
             {
                 Grid g = new AdaptiveGrid()
@@ -217,7 +193,6 @@ namespace NotificationsVisualizerLibrary.Renderers
 
                 // Get the calculated weights
                 int[] weights = CalculateWeights(group.Subgroups);
-
 
                 for (int i = 0; i < group.Subgroups.Count; i++)
                 {
@@ -277,18 +252,16 @@ namespace NotificationsVisualizerLibrary.Renderers
             for (int i = 0; i < subgroups.Count; i++)
             {
                 // If assigned, use its value
-                if (subgroups[i].HintWeight != null)
+                if (subgroups[i].HintWeight is int weight)
                 {
-                    weights[i] = subgroups[i].HintWeight.Value;
+                    weights[i] = weight;
                 }
-
                 // Otherwise, do some logic...
                 else
                 {
                     // If very first subgroup doesn't have hint-weight specified, it's assigned 50
                     weights[i] = i == 0
                         ? 50
-
                         // And the remaining get assigned 100 - the sum of preceeding weights
                         : 100 - weights.Take(i).Where(w => w != AdaptiveSubgroup.WEIGHT_AUTO).Sum();
                 }
@@ -300,7 +273,6 @@ namespace NotificationsVisualizerLibrary.Renderers
                     {
                         weights[i] = 1;
                     }
-
                     // Negative weights are turned into positive
                     else if (weights[i] < 0)
                     {
@@ -325,16 +297,15 @@ namespace NotificationsVisualizerLibrary.Renderers
             // Look through each subgroup that has children
             foreach (AdaptiveSubgroup subgroup in subgroups.Where(i => i.Children.Any()))
             {
-                AdaptiveChildElement firstNode = subgroup.Children.Where(i => IsChildInline(i)).First();
+                AdaptiveChildElement firstNode = subgroup.Children.Where(IsChildInline).First();
                 double itemOffset = 0;
 
-                if (firstNode is AdaptiveTextField)
+                if (firstNode is AdaptiveTextField field)
                 {
-                    TextStyleInfo textStyleInfo = AdaptiveGenerator_Text.GetStyleIndex((firstNode as AdaptiveTextField).HintStyle, out bool ignore);
+                    TextStyleInfo textStyleInfo = AdaptiveGenerator_Text.GetStyleIndex(field.HintStyle, out bool ignore);
                     int lineStyleIndex = textStyleInfo.Index;
                     itemOffset = AdaptiveGenerator_Text.DefaultTypeRamp[lineStyleIndex].TopOffset;
                 }
-
                 else if (firstNode is AdaptiveImage)
                 {
                     hasImage = true;
@@ -360,7 +331,7 @@ namespace NotificationsVisualizerLibrary.Renderers
             double topMarginOffset,
             Thickness externalMargin)
         {
-            AdaptiveStackPanel sp = new AdaptiveStackPanel();
+            AdaptiveStackPanel sp = new();
 
             GenerateItems(
                 children: subgroup.Children,

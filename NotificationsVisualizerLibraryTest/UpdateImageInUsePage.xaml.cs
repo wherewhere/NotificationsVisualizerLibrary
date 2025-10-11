@@ -31,13 +31,11 @@ namespace NotificationsVisualizerLibraryTest
 
             using (Stream s = await ApplicationData.Current.LocalFolder.OpenStreamForWriteAsync("MyImage.png", CreationCollisionOption.ReplaceExisting))
             {
-                using (Stream source = await file.OpenStreamForReadAsync())
-                {
-                    source.CopyTo(s);
-                }
+                using Stream source = await file.OpenStreamForReadAsync();
+                source.CopyTo(s);
             }
 
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             doc.LoadXml("<tile><visual><binding template='TileMedium'><image src='ms-appdata:///local/MyImage.png'/></binding></visual></tile>");
 
             MediumPreviewTile.CreateTileUpdater().Update(new TileNotification(doc));

@@ -1,20 +1,11 @@
 ﻿namespace NotificationsVisualizerLibrary.Helpers
 {
-    internal class StyleInfo
+    internal class StyleInfo(double lineHeight, double minLineHeight, double firstGroupMargin, double topOffset, double[] topMarginValues)
     {
-        public double LineHeightOverride;
-        public double MinLineHeight;
-        public double FirstGroupMargin;
-        public double TopOffset;
-        public double[] TopMarginValues;
-
-        public StyleInfo(double lineHeight, double minLineHeight, double firstGroupMargin, double topOffset, double[] topMarginValues)
-        {
-            LineHeightOverride = lineHeight;
-            MinLineHeight = minLineHeight;
-            FirstGroupMargin = firstGroupMargin;
-            TopOffset = topOffset;
-            TopMarginValues = topMarginValues;
-        }
+        public double LineHeightOverride = lineHeight;
+        public double MinLineHeight = minLineHeight;
+        public double FirstGroupMargin = firstGroupMargin;
+        public double TopOffset = topOffset;
+        public double[] TopMarginValues = topMarginValues;
     }
 }

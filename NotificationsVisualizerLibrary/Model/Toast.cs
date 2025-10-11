@@ -13,13 +13,13 @@ namespace NotificationsVisualizerLibrary.Model
 
         NotificationType Context { get; }
 
-        Header Header { get; set; }
+        Header? Header { get; set; }
 
-        Visual Visual { get; set; }
+        Visual? Visual { get; set; }
 
-        Actions Actions { get; set; }
+        Actions? Actions { get; set; }
 
-        Audio Audio { get; set; }
+        Audio? Audio { get; set; }
 
         string Launch { get; set; }
 
@@ -29,11 +29,11 @@ namespace NotificationsVisualizerLibrary.Model
 
         Duration? Duration { get; set; }
 
-        string People { get; set; }
+        string? People { get; set; }
     }
 
     [ObjectModelClass("ToastContent")]
-    internal class Toast : AdaptiveParentElement, IToast
+    internal partial class Toast(FeatureSet supportedFeatures) : AdaptiveParentElement(NotificationType.Toast, supportedFeatures), IToast
     {
         private const string ATTR_LAUNCH = "launch";
         private const string ATTR_DURATION = "duration";
@@ -41,23 +41,19 @@ namespace NotificationsVisualizerLibrary.Model
         private const string ATTR_HINT_PEOPLE = "hint-people";
         private const string ATTR_DISPLAYTIMESTAMP = "displayTimestamp";
 
-        public DataBindingValues DataBinding { get; private set; }
-
-        public Toast(FeatureSet supportedFeatures) : base(NotificationType.Toast, supportedFeatures)
-        {
-        }
+        public DataBindingValues? DataBinding { get; private set; }
 
         [ObjectModelProperty("Header")]
-        public Header Header { get; set; }
+        public Header? Header { get; set; }
 
         [ObjectModelProperty("Visual")]
-        public Visual Visual { get; set; }
+        public Visual? Visual { get; set; }
 
         [ObjectModelProperty("Actions")]
-        public Actions Actions { get; set; }
+        public Actions? Actions { get; set; }
 
         [ObjectModelProperty("Audio")]
-        public Audio Audio { get; set; }
+        public Audio? Audio { get; set; }
 
         [ObjectModelProperty("Launch", "")]
         public string Launch { get; set; } = "";
@@ -74,12 +70,9 @@ namespace NotificationsVisualizerLibrary.Model
         [ObjectModelProperty("DisplayTimestamp")]
         public DateTime? DisplayTimestamp { get; set; }
 
-        public string People { get; set; }
+        public string? People { get; set; }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
         internal void Parse(ParseResult result, XElement node)
         {
@@ -88,7 +81,7 @@ namespace NotificationsVisualizerLibrary.Model
                 throw new IncompleteElementException();
             }
 
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
 
             ParseKnownAttributes(attributes, result);
@@ -101,7 +94,6 @@ namespace NotificationsVisualizerLibrary.Model
                 {
                     HandleChild(result, n);
                 }
-
                 catch (IncompleteElementException) { }
             }
         }
@@ -109,7 +101,7 @@ namespace NotificationsVisualizerLibrary.Model
         private void ParseKnownAttributes(AttributesHelper attributes, ParseResult result)
         {
             // Launch is optional
-            XAttribute attrLaunc = attributes.PopAttribute(ATTR_LAUNCH);
+            XAttribute? attrLaunc = attributes.PopAttribute(ATTR_LAUNCH);
             if (attrLaunc != null)
             {
                 Launch = attrLaunc.Value;
@@ -136,7 +128,7 @@ namespace NotificationsVisualizerLibrary.Model
             }
 
             // hint-people is optional
-            XAttribute attrPeople = attributes.PopAttribute(ATTR_HINT_PEOPLE);
+            XAttribute? attrPeople = attributes.PopAttribute(ATTR_HINT_PEOPLE);
             if (attrPeople != null)
             {
                 People = attrPeople.Value;
@@ -145,7 +137,7 @@ namespace NotificationsVisualizerLibrary.Model
             // displayTimestamp is optional
             if (SupportedFeatures.ToastDisplayTimestamp)
             {
-                XAttribute attrDisplayTimestamp = attributes.PopAttribute(ATTR_DISPLAYTIMESTAMP);
+                XAttribute? attrDisplayTimestamp = attributes.PopAttribute(ATTR_DISPLAYTIMESTAMP);
                 if (attrDisplayTimestamp != null)
                 {
                     try
@@ -170,12 +162,11 @@ namespace NotificationsVisualizerLibrary.Model
                     return;
                 }
 
-                Visual visual = new Visual(NotificationType.Toast, SupportedFeatures);
+                Visual visual = new(NotificationType.Toast, SupportedFeatures);
                 visual.Parse(result, child);
 
                 Visual = visual;
             }
-
             else if (child.IsType("actions"))
             {
                 if (Actions != null)
@@ -184,12 +175,11 @@ namespace NotificationsVisualizerLibrary.Model
                     return;
                 }
 
-                Actions actions = new Actions(NotificationType.Toast, SupportedFeatures);
+                Actions actions = new(NotificationType.Toast, SupportedFeatures);
                 actions.Parse(result, child);
 
                 Actions = actions;
             }
-
             else if (child.IsType("audio"))
             {
                 if (Audio != null)
@@ -198,12 +188,11 @@ namespace NotificationsVisualizerLibrary.Model
                     return;
                 }
 
-                Audio audio = new Audio(NotificationType.Toast, SupportedFeatures);
+                Audio audio = new(NotificationType.Toast, SupportedFeatures);
                 audio.Parse(result, child);
 
                 Audio = audio;
             }
-
             else if (SupportedFeatures.ToastHeaders && child.IsType("header"))
             {
                 if (Header != null)
@@ -212,26 +201,23 @@ namespace NotificationsVisualizerLibrary.Model
                     return;
                 }
 
-                Header header = new Header(NotificationType.Toast, SupportedFeatures);
+                Header header = new(NotificationType.Toast, SupportedFeatures);
                 header.Parse(result, child);
 
                 Header = header;
             }
-
             else
             {
                 result.AddError($"Invalid child {child.Name.LocalName} under toast element.", GetErrorPositionInfo(child));
             }
         }
 
-        internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
-        {
-            return new AdaptiveChildElement[]
+        internal override IEnumerable<AdaptiveChildElement> GetAllChildren() =>
+            new AdaptiveChildElement?[]
             {
                 Visual,
                 Actions,
                 Audio
-            }.Where(i => i != null);
-        }
+            }.OfType<AdaptiveChildElement>();
     }
 }

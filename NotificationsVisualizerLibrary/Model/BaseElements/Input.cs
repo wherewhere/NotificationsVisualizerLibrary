@@ -6,36 +6,34 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastTextBox", NotificationType.Toast)]
-    internal class Input : AdaptiveParentElement
+    internal partial class Input(NotificationType context, FeatureSet supportedFeatures) : AdaptiveParentElement(context, supportedFeatures)
     {
-        public Input(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         internal const string ATTR_ID = "id";
         internal const string ATTR_TYPE = "type";
         internal const string ATTR_TITLE = "title";
         internal const string ATTR_PLACEHOLDERCONTENT = "placeHolderContent";
         internal const string ATTR_DEFAULTINPUT = "defaultInput";
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public InputType Type { get; set; }
 
         [ObjectModelProperty("Title")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [ObjectModelProperty("PlaceholderContent")]
-        public string PlaceHolderContent { get; set; }
+        public string? PlaceHolderContent { get; set; }
 
         [ObjectModelProperty("DefaultInput")]
-        public string DefaultInput { get; set; }
+        public string? DefaultInput { get; set; }
 
         public bool HintVisible { get; set; } = true;
 
-        internal IList<Selection> Children { get; private set; } = new List<Selection>();
+        internal IList<Selection> Children { get; private set; } = [];
 
         internal void Parse(ParseResult result, XElement node)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -62,8 +60,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
             if (child.IsType("selection"))
             {
-
-                Selection selection = new Selection(Context, SupportedFeatures);
+                Selection selection = new(Context, SupportedFeatures);
                 selection.Parse(result, child);
 
                 if (!result.IsOkForRender())
@@ -83,7 +80,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         protected virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // id is required
-            XAttribute attrId = attributes.PopAttribute(ATTR_ID);
+            XAttribute? attrId = attributes.PopAttribute(ATTR_ID);
             if (attrId == null)
             {
                 result.AddError("id attribute on input element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -101,53 +98,47 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             Type = type;
 
             // title is optional
-            XAttribute attrTitle = attributes.PopAttribute(ATTR_TITLE);
+            XAttribute? attrTitle = attributes.PopAttribute(ATTR_TITLE);
             if (attrTitle != null)
             {
                 Title = attrTitle.Value;
             }
 
             // placeHolderContent is optional
-            XAttribute attrPlaceHolderContent = attributes.PopAttribute(ATTR_PLACEHOLDERCONTENT);
+            XAttribute? attrPlaceHolderContent = attributes.PopAttribute(ATTR_PLACEHOLDERCONTENT);
             if (attrPlaceHolderContent != null)
             {
                 PlaceHolderContent = attrPlaceHolderContent.Value;
             }
 
             // defaultInput is optional
-            XAttribute attrDefaultInput = attributes.PopAttribute(ATTR_DEFAULTINPUT);
+            XAttribute? attrDefaultInput = attributes.PopAttribute(ATTR_DEFAULTINPUT);
             if (attrDefaultInput != null)
             {
                 DefaultInput = attrDefaultInput.Value;
             }
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
-        {
-            return Children;
-        }
+        internal override IEnumerable<AdaptiveChildElement> GetAllChildren() => Children;
 
         public override ObjectModelObject ConvertToObject()
         {
-            ObjectModelObject obj = base.ConvertToObject();
+            ObjectModelObject obj = base.ConvertToObject()!;
 
             switch (Type)
             {
                 case InputType.Selection:
-                    return new ObjectModelObject("ToastSelectionBox", new ObjectModelString(Id))
+                    return new ObjectModelObject("ToastSelectionBox", new ObjectModelString(Id!))
                     {
-                        { "Title", Title },
+                        { nameof(Title), Title },
                         { "DefaultSelectionBoxItemId", DefaultInput },
                         { "Items", new ObjectModelListInitialization(Children.Select(i => i.ConvertToObject())) }
                     };
 
                 case InputType.Text:
-                    obj.ConstructorValues.Add(new ObjectModelString(Id));
+                    obj.ConstructorValues.Add(new ObjectModelString(Id!));
                     break;
             }
 

@@ -5,16 +5,10 @@ namespace NotificationsVisualizerLibrary.Helpers
 {
     internal class TextStylesMap
     {
-        private readonly List<TextStyleInfoPair> _pairs = new List<TextStyleInfoPair>();
+        private readonly List<TextStyleInfoPair> _pairs = [];
 
-        public void Add(TextStyleInfoPair pair)
-        {
-            _pairs.Add(pair);
-        }
+        public void Add(TextStyleInfoPair pair) => _pairs.Add(pair);
 
-        public TextStyleInfo Find(string styleName)
-        {
-            return _pairs.FirstOrDefault(i => i.StyleName.Equals(styleName))?.TextStyleInfo;
-        }
+        public TextStyleInfo? Find(string styleName) => _pairs.FirstOrDefault(i => i.StyleName.Equals(styleName))?.TextStyleInfo;
     }
 }

@@ -1,8 +1,8 @@
-﻿using NotificationsVisualizerLibrary.Manifest;
-using NotificationsVisualizerLibrary.Model;
+﻿using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Renderers;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -39,6 +39,7 @@ namespace NotificationsVisualizerLibrary
             Initialize();
         }
 
+        [MemberNotNull(nameof(_tileUpdater), nameof(_badgeUpdater))]
         private async void Initialize()
         {
             _tileUpdater = new PreviewTileUpdater(this);
@@ -71,7 +72,7 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnTileSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            (d as PreviewTile).OnTileSizeChanged(e);
+            (d as PreviewTile)!.OnTileSizeChanged(e);
         }
 
         private void OnTileSizeChanged(DependencyPropertyChangedEventArgs e)
@@ -84,28 +85,14 @@ namespace NotificationsVisualizerLibrary
 
         private void UpdateTileSize()
         {
-            switch (TileSize)
+            TilePixelSize = TileSize switch
             {
-                case TileSize.Small:
-                    TilePixelSize = TileDensity.Small;
-                    break;
-
-                case TileSize.Medium:
-                    TilePixelSize = TileDensity.Medium;
-                    break;
-
-                case TileSize.Wide:
-                    TilePixelSize = TileDensity.Wide;
-                    break;
-
-                case TileSize.Large:
-                    TilePixelSize = TileDensity.Large;
-                    break;
-
-                default:
-                    throw new NotImplementedException(TileSize.ToString());
-            }
-
+                TileSize.Small => TileDensity.Small,
+                TileSize.Medium => TileDensity.Medium,
+                TileSize.Wide => TileDensity.Wide,
+                TileSize.Large => TileDensity.Large,
+                _ => throw new NotImplementedException(TileSize.ToString()),
+            };
             UpdateBranding();
         }
 
@@ -128,7 +115,7 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnTileDensityChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewTile).OnTileDensityChanged(e);
+            (sender as PreviewTile)!.OnTileDensityChanged(e);
         }
 
         private void OnTileDensityChanged(DependencyPropertyChangedEventArgs e)
@@ -144,7 +131,7 @@ namespace NotificationsVisualizerLibrary
 
         public TileDensity TileDensity
         {
-            get => GetValue(TileDensityProperty) as TileDensity;
+            get => (GetValue(TileDensityProperty) as TileDensity)!;
             set => SetValue(TileDensityProperty, value);
         }
 
@@ -170,7 +157,7 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnDeviceFamilyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewTile).OnDeviceFamilyChanged(e);
+            (sender as PreviewTile)!.OnDeviceFamilyChanged(e);
         }
 
         private void OnDeviceFamilyChanged(DependencyPropertyChangedEventArgs e)
@@ -202,13 +189,10 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnOSBuildNumberChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewTile).OnOSBuildNumberChanged(e);
+            (sender as PreviewTile)!.OnOSBuildNumberChanged(e);
         }
 
-        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e)
-        {
-            UpdateFeatureSet();
-        }
+        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e) => UpdateFeatureSet();
 
         internal FeatureSet CurrFeatureSet { get; private set; }
 
@@ -251,78 +235,42 @@ namespace NotificationsVisualizerLibrary
             set => SetValue(IsAnimationEnabledProperty, value);
         }
 
-        private Template[] GetValidTemplateValues()
+        private Template[] GetValidTemplateValues() => TileSize switch
         {
-            switch (TileSize)
-            {
-                case TileSize.Small:
-                    return new Template[] { Model.Enums.Template.TileSmall };
-
-                case TileSize.Medium:
-                    return new Template[] { Model.Enums.Template.TileMedium };
-
-                case TileSize.Wide:
-                    return new Template[] { Model.Enums.Template.TileWide };
-
-                case TileSize.Large:
-                    return new Template[] { Model.Enums.Template.TileLarge };
-
-                default:
-                    return new Template[0];
-            }
-        }
+            TileSize.Small => [Model.Enums.Template.TileSmall],
+            TileSize.Medium => [Model.Enums.Template.TileMedium],
+            TileSize.Wide => [Model.Enums.Template.TileWide],
+            TileSize.Large => [Model.Enums.Template.TileLarge],
+            _ => [],
+        };
 
         //private readonly Package _package;
-        private object _notificationData;
+        private object? _notificationData;
 
-        private Uri GetLogo()
+        private Uri? GetLogo() => TileSize switch
         {
-            switch (TileSize)
-            {
-                case TileSize.Small:
-                    return VisualElements.Square71x71Logo ?? VisualElements.Square150x150Logo;
+            TileSize.Small => VisualElements.Square71x71Logo ?? VisualElements.Square150x150Logo,
+            TileSize.Medium => VisualElements.Square150x150Logo,
+            TileSize.Wide => VisualElements.Wide310x150Logo,
+            TileSize.Large => VisualElements.Square310x310Logo ?? VisualElements.Square150x150Logo,
+            _ => throw new NotImplementedException(),
+        };
 
-                case TileSize.Medium:
-                    return VisualElements.Square150x150Logo;
+        private Uri? GetCornerLogo() => VisualElements.Square44x44Logo;
 
-                case TileSize.Wide:
-                    return VisualElements.Wide310x150Logo;
-
-                case TileSize.Large:
-                    return VisualElements.Square310x310Logo ?? VisualElements.Square150x150Logo;
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private Uri GetCornerLogo()
-        {
-            return VisualElements.Square44x44Logo;
-        }
-
-        //private static async Task<string> GetMrtUri(Package package, string path)
-        //{
-        //    return await package.GetMrtUri(path);
-        //}
+        //private static async Task<string> GetMrtUri(Package package, string path) => await package.GetMrtUri(path);
 
         /// <summary>
         /// Returns a tile updater for updating the content of this preview tile.
         /// </summary>
         /// <returns></returns>
-        public PreviewTileUpdater CreateTileUpdater()
-        {
-            return _tileUpdater;
-        }
+        public PreviewTileUpdater CreateTileUpdater() => _tileUpdater;
 
         /// <summary>
         /// Returns a badge updater for updating the badge for this preview tile.
         /// </summary>
         /// <returns></returns>
-        public PreviewBadgeUpdater CreateBadgeUpdater()
-        {
-            return _badgeUpdater;
-        }
+        public PreviewBadgeUpdater CreateBadgeUpdater() => _badgeUpdater;
 
         private void ResetDisplayProperties()
         {
@@ -342,7 +290,7 @@ namespace NotificationsVisualizerLibrary
             ShowElement(new Border()
             {
                 Background = new SolidColorBrush(VisualElements.BackgroundColor),
-                Child = new Windows.UI.Xaml.Controls.Image()
+                Child = new Image()
                 {
                     Source = GenerateBitmapImage(GetLogo()),
                     Stretch = Stretch.UniformToFill
@@ -350,11 +298,8 @@ namespace NotificationsVisualizerLibrary
             }, animate);
         }
 
-        private BitmapImage GenerateBitmapImage(Uri uri)
-        {
-            return uri == null ? null : ImageHelper.GetBitmap(uri.OriginalString);
-        }
-
+        [return:NotNullIfNotNull(nameof(uri))]
+        private static BitmapImage? GenerateBitmapImage(Uri? uri) => uri == null ? null : ImageHelper.GetBitmap(uri.OriginalString);
 
         private Branding? _notificationBranding;
         internal bool _hasNotificationForCurrentSize;
@@ -362,17 +307,11 @@ namespace NotificationsVisualizerLibrary
         private void UpdateBranding()
         {
             // On Small tiles, margin is only 4px, so branding needs to move too
-            switch (TileSize)
+            Branding.Margin = TileSize switch
             {
-                case TileSize.Small:
-                    Branding.Margin = new Thickness(0, 0, 2, -4);
-                    break;
-
-                default:
-                    Branding.Margin = new Thickness(0, 0, 6, 0);
-                    break;
-            }
-
+                TileSize.Small => new Thickness(0, 0, 2, -4),
+                _ => new Thickness(0, 0, 6, 0),
+            };
             bool showName;
             bool showCornerLogo;
 
@@ -423,34 +362,20 @@ namespace NotificationsVisualizerLibrary
                     showName = false;
                 }
             }
-
             // Otherwise, use behaviors from VisualElements
             else
             {
                 // Default behavior is to never show corner logo (if notification displayed, default branding inherits ShowName from basic tile properties, never shows corner logo)
                 showCornerLogo = false;
 
-                switch (TileSize)
+                showName = TileSize switch
                 {
-                    case TileSize.Small:
-                        showName = false; // name never shown on small
-                        break;
-
-                    case TileSize.Medium:
-                        showName = VisualElements.ShowNameOnSquare150x150Logo;
-                        break;
-
-                    case TileSize.Wide:
-                        showName = VisualElements.ShowNameOnWide310x150Logo;
-                        break;
-
-                    case TileSize.Large:
-                        showName = VisualElements.ShowNameOnSquare310x310Logo;
-                        break;
-
-                    default:
-                        throw new NotImplementedException(TileSize.ToString());
-                }
+                    TileSize.Small => false,// name never shown on small
+                    TileSize.Medium => VisualElements.ShowNameOnSquare150x150Logo,
+                    TileSize.Wide => VisualElements.ShowNameOnWide310x150Logo,
+                    TileSize.Large => VisualElements.ShowNameOnSquare310x310Logo,
+                    _ => throw new NotImplementedException(TileSize.ToString()),
+                };
             }
 
             // Decide to show the name
@@ -464,20 +389,14 @@ namespace NotificationsVisualizerLibrary
             Branding.Visibility = HasBadge() || showName || showCornerLogo ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private bool HasBadge()
-        {
-            return badgeValueControl.Value.HasBadge();
-        }
+        private bool HasBadge() => badgeValueControl.Value.HasBadge();
 
-        private void Reshow()
-        {
-            Show(_notificationData, false);
-        }
+        private void Reshow() => Show(_notificationData, false);
 
-        internal void Show(object tile, bool animate)
+        internal void Show(object? tile, bool animate)
         {
             // Ensure valid object passed in
-            if (tile != null && !(tile is ITile))
+            if (tile is not null and not ITile)
             {
                 throw new InvalidOperationException("tile must be of type ITile");
             }
@@ -512,11 +431,9 @@ namespace NotificationsVisualizerLibrary
             }
 
             // Find the first matching template for the current size, or if none, revert to default
-            if (tile is ITile)
+            if (tile is ITile xmlTile)
             {
-                ITile xmlTile = tile as ITile;
-
-                AdaptiveBinding binding = xmlTile.Visual.Bindings.FirstOrDefault(m => GetValidTemplateValues().Contains(m.Template));
+                AdaptiveBinding? binding = xmlTile.Visual.Bindings.FirstOrDefault(m => GetValidTemplateValues().Contains(m.Template));
                 if (binding == null)
                 {
                     ShowDefault(animate);
@@ -550,7 +467,7 @@ namespace NotificationsVisualizerLibrary
                 UpdateBranding();
 
                 // Generate the actual notification content
-                PreviewTileNotification notificationContent = new PreviewTileNotification()
+                PreviewTileNotification notificationContent = new()
                 {
                     RequestedTheme = ElementTheme.Dark
                 };
@@ -576,7 +493,7 @@ namespace NotificationsVisualizerLibrary
         /// <param name="animate"></param>
         private void ShowElement(UIElement el, bool animate)
         {
-            UIElement previous = canvas.Children.LastOrDefault();
+            UIElement? previous = canvas.Children.LastOrDefault();
 
             // If we're not animating, or no previous content, clear children and instantly show new content
             if (!animate || previous == null)
@@ -615,9 +532,9 @@ namespace NotificationsVisualizerLibrary
             s.Begin();
         }
 
-        private Storyboard CreateAnimationForNewNotification(UIElement oldNotification, UIElement newNotification)
+        private static Storyboard CreateAnimationForNewNotification(UIElement oldNotification, UIElement newNotification)
         {
-            Storyboard s = new Storyboard();
+            Storyboard s = new();
 
             TimeSpan duration = TimeSpan.FromSeconds(0.5);
             TimeSpan halfTime = TimeSpan.FromSeconds(duration.TotalSeconds / 2);
@@ -626,7 +543,7 @@ namespace NotificationsVisualizerLibrary
             oldNotification.Projection = new PlaneProjection();
 
             // Make the height decrease
-            DoubleAnimation a = new DoubleAnimation()
+            DoubleAnimation a = new()
             {
                 Duration = halfTime,
                 To = 90,
@@ -659,9 +576,9 @@ namespace NotificationsVisualizerLibrary
 
         //private Storyboard CreateAnimationForAlreadySeenNotification(UIElement alreadySeenNotification)
         //{
-        //    Storyboard s = new Storyboard();
+        //    Storyboard s = new();
 
-        //    DoubleAnimation animateNewElement = new DoubleAnimation()
+        //    DoubleAnimation animateNewElement = new()
         //    {
         //        Duration = TimeSpan.FromSeconds(1),
         //        From = TilePixelSize.Height,
@@ -681,7 +598,7 @@ namespace NotificationsVisualizerLibrary
         //    return s;
         //}
 
-        private string _customDisplayName = null;
+        private string? _customDisplayName = null;
 
         private static readonly DependencyProperty DisplayNameProperty =
             DependencyProperty.Register(
@@ -693,16 +610,13 @@ namespace NotificationsVisualizerLibrary
         /// <summary>
         /// Gets or sets a name that is associated with and displayed on the preview tile. This name is displayed on the tile and in the tile's tooltip. UpdateAsync must be called after changing this in order to commit the changes to the UI of the tile.
         /// </summary>
-        public string DisplayName
+        public string? DisplayName
         {
             get => GetValue(DisplayNameProperty) as string;
             set => SetValue(DisplayNameProperty, value);
         }
 
-        private void UpdateDisplayName()
-        {
-            TextBlockDisplayName.Text = _customDisplayName ?? DisplayName;
-        }
+        private void UpdateDisplayName() => TextBlockDisplayName.Text = _customDisplayName ?? DisplayName;
 
         private void UpdateVisualElements()
         {

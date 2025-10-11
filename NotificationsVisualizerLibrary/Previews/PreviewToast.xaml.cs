@@ -5,6 +5,7 @@ using NotificationsVisualizerLibrary.Parsers;
 using NotificationsVisualizerLibrary.Renderers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Data.Xml.Dom;
@@ -26,9 +27,9 @@ namespace NotificationsVisualizerLibrary
     {
         public Color BackgroundColor { get; set; } = Color.FromArgb(255, 0, 120, 215);
 
-        public Uri Square44x44Logo { get; set; }
+        public Uri? Square44x44Logo { get; set; }
 
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
     }
 
     public sealed class PreviewToastNotificationActivatedEventArgs
@@ -46,15 +47,13 @@ namespace NotificationsVisualizerLibrary
 
     public sealed partial class PreviewToast : UserControl, IPreviewToast
     {
-        public static event EventHandler<Exception> OnRenderingErrorOccurred;
+        public static event EventHandler<Exception>? OnRenderingErrorOccurred;
         internal static void SendRenderingError(Exception ex)
         {
             OnRenderingErrorOccurred?.Invoke(null, ex);
         }
 
-        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
-
-        public event EventHandler<PreviewToastNotificationActivatedEventArgs> ActivatedForeground, ActivatedBackground, ActivatedSystem, ActivatedProtocol;
+        public event EventHandler<PreviewToastNotificationActivatedEventArgs>? ActivatedForeground, ActivatedBackground, ActivatedSystem, ActivatedProtocol;
 
         public PreviewToast()
         {
@@ -87,14 +86,14 @@ namespace NotificationsVisualizerLibrary
             AssignMenuFlyout(null);
         }
 
-        private void AssignMenuFlyout(MenuFlyoutItem[] firstItems)
+        private void AssignMenuFlyout(MenuFlyoutItem[]? firstItems)
         {
             try
             {
                 // ContextFlyout was added in Anniversary Update
                 if (ApiInformation.IsPropertyPresent(typeof(UIElement).FullName, nameof(ContextFlyout)))
                 {
-                    MenuFlyout menu = new MenuFlyout();
+                    MenuFlyout menu = new();
 
                     if (firstItems != null && firstItems.Length > 0)
                     {
@@ -125,19 +124,16 @@ namespace NotificationsVisualizerLibrary
             }
         }
 
-        private readonly List<IInput> _currInputs = new List<IInput>();
+        private readonly List<IInput> _currInputs = [];
 
         /// <summary>
         /// Call this to initialize the toast with new toast content. This can be called multiple times, and will clear the previous content.
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public ParseResult Initialize(XmlDocument content)
-        {
-            return Initialize(content, new PreviewNotificationData());
-        }
+        public ParseResult Initialize(XmlDocument content) => Initialize(content, new PreviewNotificationData());
 
-        private DataBindingValues _lastDataBindingValues;
+        private DataBindingValues? _lastDataBindingValues;
         /// <summary>
         /// Call this to initialize the toast with new toast content and data. This can be called multiple times, and will clear the previous content.
         /// </summary>
@@ -146,12 +142,12 @@ namespace NotificationsVisualizerLibrary
         /// <returns></returns>
         public ParseResult Initialize(XmlDocument content, PreviewNotificationData data)
         {
-            ParseResult result = _parser.ParseToast(content.GetXml(), CurrFeatureSet);
+            ParseResult result = XmlTemplateParser.ParseToast(content.GetXml(), CurrFeatureSet);
 
             if (result.IsOkForRender())
             {
                 _lastDataBindingValues = new DataBindingValues(data);
-                result.Toast.ApplyDataBinding(_lastDataBindingValues);
+                result.Toast!.ApplyDataBinding(_lastDataBindingValues);
 
                 if (result.IsOkForRender())
                 {
@@ -168,12 +164,12 @@ namespace NotificationsVisualizerLibrary
         /// <param name="data"></param>
         public void Update(PreviewNotificationData data)
         {
-            if (_lastDataBindingValues == null || !(_currContent is Toast) || data.Version < _lastDataBindingValues.Version)
+            if (_lastDataBindingValues == null || _currContent is not Toast || data.Version < _lastDataBindingValues.Version)
             {
                 return;
             }
             _lastDataBindingValues.Update(data.Values);
-            (_currContent as Toast).ApplyDataBinding(_lastDataBindingValues);
+            (_currContent as Toast)!.ApplyDataBinding(_lastDataBindingValues);
         }
 
         private static readonly DependencyProperty PropertiesProperty =
@@ -185,7 +181,7 @@ namespace NotificationsVisualizerLibrary
 
         public PreviewToastProperties Properties
         {
-            get => GetValue(PropertiesProperty) as PreviewToastProperties;
+            get => (GetValue(PropertiesProperty) as PreviewToastProperties)!;
             set => SetValue(PropertiesProperty, value);
         }
 
@@ -198,10 +194,10 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnIsExpandedChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewToast).OnIsExpandedChanged(e);
+            (sender as PreviewToast)!.OnIsExpandedChanged(e);
         }
 
-        private void OnIsExpandedChanged(DependencyPropertyChangedEventArgs e)
+        private void OnIsExpandedChanged(DependencyPropertyChangedEventArgs? e)
         {
             if (IsExpanded)
             {
@@ -214,7 +210,6 @@ namespace NotificationsVisualizerLibrary
                     VisualStateManager.GoToState(this, "ExpandedState", false);
                 }
             }
-
             else
             {
                 if (CurrFeatureSet != null && CurrFeatureSet.RS1_Style_Toasts)
@@ -240,46 +235,35 @@ namespace NotificationsVisualizerLibrary
             string Value { get; }
         }
 
-        private class TextInput : IInput
+        private class TextInput(TextBox tb) : IInput
         {
-            private readonly TextBox _tb;
-            public TextInput(TextBox tb)
-            {
-                _tb = tb;
-            }
+            public string Id => (string)tb.Tag;
 
-            public string Id => (string)_tb.Tag;
-
-            public string Value => _tb.Text;
+            public string Value => tb.Text;
         }
 
-        private class SelectionInput : IInput
+        private class SelectionInput(ComboBox cb) : IInput
         {
-            private readonly ComboBox _cb;
+            public string Id => (string)cb.Tag;
 
-            public SelectionInput(ComboBox cb)
-            {
-                _cb = cb;
-            }
-
-            public string Id => (string)_cb.Tag;
-
-            public string Value => _cb.SelectedItem is Selection selection ? selection.Id : "";
+            public string Value => cb.SelectedItem is Selection selection ? selection.Id! : "";
         }
 
         private string _currLaunch = "";
         private ActivationType _currActivationType = ActivationType.Foreground;
-        private Dictionary<string, FrameworkElement> _elementsWithIds;
+        private Dictionary<string, FrameworkElement>? _elementsWithIds;
 
-        private IToast _currContent;
+        private IToast? _currContent;
 
         public bool HasContent { get; private set; }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private void ReInitializeContent()
         {
             InitializeContent(_currContent);
         }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private void ResetContent()
         {
             HasContent = false;
@@ -315,7 +299,7 @@ namespace NotificationsVisualizerLibrary
             ImageAppLogo.Visibility = Visibility.Collapsed;
             CircleImageAppLogo.Visibility = Visibility.Collapsed;
 
-            _elementsWithIds = new Dictionary<string, FrameworkElement>();
+            _elementsWithIds = [];
 
             _currInputs.Clear();
             _currLaunch = "";
@@ -330,7 +314,8 @@ namespace NotificationsVisualizerLibrary
             AppLogoOverrideContainer.Visibility = Visibility.Collapsed;
         }
 
-        private void InitializeContent(IToast toastContent)
+        [MemberNotNull(nameof(_elementsWithIds))]
+        private void InitializeContent(IToast? toastContent)
         {
             ResetContent();
 
@@ -358,36 +343,32 @@ namespace NotificationsVisualizerLibrary
                 {
                     Visual visual = toastContent.Visual;
 
-                    AdaptiveBinding binding = toastContent.Context == NotificationType.Toast
-                        ? visual.Bindings.FirstOrDefault()
+                    AdaptiveBinding? binding = toastContent.Context == NotificationType.Toast
+                        ? visual.Bindings is [AdaptiveBinding value, ..] ? value : null
                         : visual.Bindings.FirstOrDefault(i => i.Template == Model.Enums.Template.ToastGeneric);
                     if (binding != null)
                     {
                         HasContent = true;
 
-                        AdaptiveContainer container = binding.Container;
-                        List<AdaptiveChildElement> children = new List<AdaptiveChildElement>(container.Children);
+                        AdaptiveContainer? container = binding.Container;
+                        List<AdaptiveChildElement> children = [.. container!.Children];
 
-
-                        List<AdaptiveTextField> texts = children.OfType<AdaptiveTextField>().ToList();
-                        List<AdaptiveImage> appLogoOverrides = null;
-                        List<AdaptiveImage> heroImages = new List<AdaptiveImage>();
-                        List<AdaptiveTextField> attributionTexts = children.OfType<AdaptiveTextField>().Where(i => i.Placement == Model.Enums.TextPlacement.Attribution).ToList();
-
+                        List<AdaptiveTextField> texts = [.. children.OfType<AdaptiveTextField>()];
+                        List<AdaptiveImage>? appLogoOverrides = null;
+                        List<AdaptiveImage> heroImages = [];
+                        List<AdaptiveTextField> attributionTexts = [.. children.OfType<AdaptiveTextField>().Where(i => i.Placement == Model.Enums.TextPlacement.Attribution)];
 
                         if (CurrFeatureSet.AdaptiveToasts)
                         {
-                            appLogoOverrides = new List<AdaptiveImage>();
+                            appLogoOverrides = [];
 
                             // First pull out images with placements and attribution text
                             for (int i = 0; i < children.Count; i++)
                             {
                                 AdaptiveChildElement child = children[i];
 
-                                if (child is AdaptiveImage)
+                                if (child is AdaptiveImage img)
                                 {
-                                    AdaptiveImage img = child as AdaptiveImage;
-
                                     switch (img.Placement)
                                     {
                                         case Model.Enums.Placement.AppLogoOverride:
@@ -403,11 +384,8 @@ namespace NotificationsVisualizerLibrary
                                             break;
                                     }
                                 }
-
-                                else if (child is AdaptiveTextField)
+                                else if (child is AdaptiveTextField txt)
                                 {
-                                    AdaptiveTextField txt = child as AdaptiveTextField;
-
                                     if (txt.Placement != Model.Enums.TextPlacement.Inline)
                                     {
                                         children.RemoveAt(i);
@@ -417,37 +395,34 @@ namespace NotificationsVisualizerLibrary
                             }
 
                             // Assign hero
-                            if (heroImages.Any())
+                            if (heroImages.Count > 0)
                             {
                                 ImageHero.Visibility = Visibility.Visible;
                                 ImageHeroBrush.ImageSource = ImageHelper.GetBitmap(heroImages.First().Src);
                             }
-
                             else
                             {
                                 ImageHero.Visibility = Visibility.Collapsed;
                                 ImageHeroBrush.ImageSource = null;
                             }
 
-
-                            texts = new List<AdaptiveTextField>();
+                            texts = [];
 
                             // Pull out all texts
                             for (int i = 0; i < children.Count; i++)
                             {
                                 AdaptiveChildElement child = children[i];
 
-                                if (child is AdaptiveTextField && (child as AdaptiveTextField).Placement == Model.Enums.TextPlacement.Inline)
+                                if (child is AdaptiveTextField field && field.Placement == Model.Enums.TextPlacement.Inline)
                                 {
-                                    texts.Add(child as AdaptiveTextField);
+                                    texts.Add(field);
                                     children.RemoveAt(i);
                                     i--;
                                 }
                             }
                         }
 
-
-                        AdaptiveTextField titleText = texts.ElementAtOrDefault(0);
+                        AdaptiveTextField? titleText = texts.ElementAtOrDefault(0);
                         if (titleText != null)
                         {
                             TextBlockTitle.Text = titleText.Text;
@@ -458,7 +433,7 @@ namespace NotificationsVisualizerLibrary
                                 TextBlockTitle.TextWrapping = titleText.HintWrap.GetValueOrDefault(true) ? TextWrapping.WrapWholeWords : TextWrapping.NoWrap;
                             }
 
-                            AdaptiveTextField bodyTextLine1 = texts.ElementAtOrDefault(1);
+                            AdaptiveTextField? bodyTextLine1 = texts.ElementAtOrDefault(1);
                             if (bodyTextLine1 != null)
                             {
                                 if (CurrFeatureSet.AdaptiveToasts)
@@ -466,28 +441,25 @@ namespace NotificationsVisualizerLibrary
                                     TextBlockBody.Text = bodyTextLine1.Text;
                                     TextBlockBody.MaxLines = Math.Min(bodyTextLine1.HintMaxLines.GetValueOrDefault(4), 4);
 
-                                    AdaptiveTextField bodyTextLine2 = texts.ElementAtOrDefault(2);
+                                    AdaptiveTextField? bodyTextLine2 = texts.ElementAtOrDefault(2);
                                     if (bodyTextLine2 != null)
                                     {
                                         TextBlockBody.Text += "\n" + bodyTextLine2.Text;
                                     }
                                 }
-
                                 else
                                 {
-                                    AdaptiveTextField bodyTextLine2 = texts.ElementAtOrDefault(2);
-                                    TextBlockBody.Text = bodyTextLine2 != null ? bodyTextLine1.Text + "\n" + bodyTextLine2.Text : bodyTextLine1.Text;
+                                    AdaptiveTextField? bodyTextLine2 = texts.ElementAtOrDefault(2);
+                                    TextBlockBody.Text = bodyTextLine2 != null ? $"{bodyTextLine1.Text}\n{bodyTextLine2.Text}" : bodyTextLine1.Text;
                                 }
 
                                 TextBlockBody.Visibility = Visibility.Visible;
                             }
-
                             else
                             {
                                 TextBlockBody.Visibility = Visibility.Collapsed;
                             }
                         }
-
                         else
                         {
                             TextBlockTitle.Text = Properties.DisplayName;
@@ -495,61 +467,51 @@ namespace NotificationsVisualizerLibrary
                             TextBlockBody.Visibility = Visibility.Visible;
                         }
 
-                        List<AdaptiveImage> images = children.OfType<AdaptiveImage>().ToList();
+                        List<AdaptiveImage> images = [.. children.OfType<AdaptiveImage>()];
 
                         if (toastContent.Scenario == Scenario.IncomingCall)
                         {
-                            AdaptiveImage callingImage = images.FirstOrDefault(i => i.Placement == Model.Enums.Placement.Inline);
+                            AdaptiveImage? callingImage = images.FirstOrDefault(i => i.Placement == Model.Enums.Placement.Inline);
                             if (callingImage != null)
                             {
                                 images.Remove(callingImage);
 
-                                switch (callingImage.HintCrop)
+                                CallingImageContainer.Child = callingImage.HintCrop switch
                                 {
-                                    case Model.Enums.HintCrop.Circle:
-                                        CallingImageContainer.Child = AssignId(new CircleImage()
-                                        {
-                                            Source = ImageHelper.GetBitmap(callingImage.Src),
-                                            Width = 96,
-                                            Height = 96,
-                                            Margin = new Thickness(0, 0, 0, 12)
-                                        }, callingImage.Id);
-                                        break;
-
-                                    default:
-                                        CallingImageContainer.Child = AssignId(new Image()
-                                        {
-                                            Source = ImageHelper.GetBitmap(callingImage.Src),
-                                            Width = 200,
-                                            Height = 200,
-                                            Stretch = Stretch.Uniform,
-                                            Margin = new Thickness(0, 0, 0, 12)
-                                        }, callingImage.Id);
-                                        break;
-                                }
+                                    Model.Enums.HintCrop.Circle => AssignId(new CircleImage()
+                                    {
+                                        Source = ImageHelper.GetBitmap(callingImage.Src),
+                                        Width = 96,
+                                        Height = 96,
+                                        Margin = new Thickness(0, 0, 0, 12)
+                                    }, callingImage.Id),
+                                    _ => AssignId(new Image()
+                                    {
+                                        Source = ImageHelper.GetBitmap(callingImage.Src),
+                                        Width = 200,
+                                        Height = 200,
+                                        Stretch = Stretch.Uniform,
+                                        Margin = new Thickness(0, 0, 0, 12)
+                                    }, callingImage.Id),
+                                };
                             }
                         }
 
+                        appLogoOverrides ??= [.. images.Where(i => i.Placement == Model.Enums.Placement.AppLogoOverride)];
 
-                        if (appLogoOverrides == null)
-                        {
-                            appLogoOverrides = images.Where(i => i.Placement == Model.Enums.Placement.AppLogoOverride).ToList();
-                        }
-
-                        AdaptiveImage appLogoOverride = appLogoOverrides.FirstOrDefault();
+                        AdaptiveImage? appLogoOverride = appLogoOverrides.FirstOrDefault();
                         if (appLogoOverride != null)
                         {
                             Pre19H2AppLogo.Visibility = Visibility.Collapsed;
                             AppLogoOverrideContainer.Visibility = Visibility.Visible;
 
-                            BitmapImage source = ImageHelper.GetBitmap(appLogoOverride.Src);
+                            BitmapImage? source = ImageHelper.GetBitmap(appLogoOverride.Src);
 
                             if (appLogoOverride.HintCrop == Model.Enums.HintCrop.Circle)
                             {
-                                CircleImageAppLogo.Source = source;
+                                CircleImageAppLogo.Source = source!;
                                 CircleImageAppLogo.Visibility = Visibility.Visible;
                             }
-
                             else
                             {
                                 ImageAppLogo.Source = source;
@@ -578,7 +540,7 @@ namespace NotificationsVisualizerLibrary
 
                         foreach (AdaptiveImage image in images.Where(i => i.Placement == Model.Enums.Placement.Inline))
                         {
-                            Image uiImage = new Image()
+                            Image uiImage = new()
                             {
                                 Source = ImageHelper.GetBitmap(image.Src),
                                 MaxWidth = 84,
@@ -622,10 +584,10 @@ namespace NotificationsVisualizerLibrary
                                     }
                                 }
 
-                                AdaptiveChildElement[] oldChildren = binding.Container.Children.ToArray();
+                                AdaptiveChildElement[] oldChildren = [.. binding.Container!.Children];
                                 binding.Container.SwapChildren(children);
 
-                                PreviewTileNotification notif = new PreviewTileNotification();
+                                PreviewTileNotification notif = new();
                                 notif.InitializeFromXml(TileSize.Large, new PreviewTileVisualElements()
                                 {
                                     BackgroundColor = Colors.Transparent
@@ -638,12 +600,10 @@ namespace NotificationsVisualizerLibrary
                             }
                         }
 
-
-
                         // Attribution
                         if (toastContent.SupportedFeatures.RS1_Style_Toasts)
                         {
-                            if (attributionTexts.Any())
+                            if (attributionTexts.Count > 0)
                             {
                                 StackPanelAttribution.Visibility = Visibility.Visible;
 
@@ -659,59 +619,57 @@ namespace NotificationsVisualizerLibrary
                     }
                 }
 
-
                 if (toastContent.Actions != null)
                 {
                     Actions actions = toastContent.Actions;
 
                     if (actions.HintSystemCommands == Model.Enums.HintSystemCommands.SnoozeAndDismiss)
                     {
-                        AddInput(CreateComboBox("systemSnoozeSelection", null, new Selection[]
-                        {
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                        AddInput(CreateComboBox("systemSnoozeSelection", null,
+                        [
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "5 minutes",
                                 Id = "5"
                             },
 
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "9 minutes",
                                 Id = "9"
                             },
 
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "10 minutes",
                                 Id = "10"
                             },
 
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "1 hour",
                                 Id = "60"
                             },
 
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "4 hours",
                                 Id = "240"
                             },
 
-                            new Selection(NotificationType.Toast, CurrFeatureSet)
+                            new(NotificationType.Toast, CurrFeatureSet)
                             {
                                 Content = "1 day",
                                 Id = "1440"
                             }
-                        }, "9", true));
+                        ], "9", true));
 
                         AddButton(CreateButton("Snooze", "snooze", null, ActivationType.System, toastContent.Scenario));
                         AddButton(CreateButton("Dismiss", "dismiss", null, ActivationType.System, toastContent.Scenario));
                     }
-
                     else
                     {
-                        List<Model.BaseElements.Action> actionElements = actions.ActionElements.ToList();
+                        List<Model.BaseElements.Action> actionElements = [.. actions.ActionElements];
 
                         if (toastContent.SupportedFeatures.RS1_Style_Toasts)
                         {
@@ -722,12 +680,12 @@ namespace NotificationsVisualizerLibrary
                         foreach (Input i in actions.Inputs)
                         {
                             // See if we can pull out a related action to display on side
-                            Model.BaseElements.Action a = null;
+                            Model.BaseElements.Action? a = null;
 
                             // We only place ajacent to text boxes
                             if (i.Type == InputType.Text)
                             {
-                                a = actionElements.FirstOrDefault(x => object.Equals(x.InputId, i.Id));
+                                a = actionElements.FirstOrDefault(x => Equals(x.InputId, i.Id));
                             }
 
                             if (a != null)
@@ -735,14 +693,14 @@ namespace NotificationsVisualizerLibrary
                                 actionElements.Remove(a);
                             }
 
-                            Grid grid = new Grid();
+                            Grid grid = new();
 
                             if (a != null)
                             {
                                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
                                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-                                FrameworkElement uiButton = CreateImageButton(a.ImageUri, a.Arguments, a.ActivationType);
+                                FrameworkElement uiButton = CreateImageButton(a.ImageUri!, a.Arguments!, a.ActivationType);
 
                                 AssignId(uiButton, a.Id);
 
@@ -764,13 +722,11 @@ namespace NotificationsVisualizerLibrary
                                         defaultInput: i.DefaultInput,
                                         placeHolderContent: i.PlaceHolderContent,
                                         hintVisible: i.HintVisible);
-
                                     grid.Children.Add(tb);
                                     break;
 
                                 case InputType.Selection:
-                                    ComboBox cb = CreateComboBox(i.Id, i.Title, i.Children.OfType<Selection>().ToArray(), i.DefaultInput, i.HintVisible);
-
+                                    ComboBox cb = CreateComboBox(i.Id, i.Title, [.. i.Children.OfType<Selection>()], i.DefaultInput, i.HintVisible);
                                     grid.Children.Add(cb);
                                     break;
 
@@ -786,7 +742,7 @@ namespace NotificationsVisualizerLibrary
                         {
                             Model.BaseElements.Action a = actionElements[0];
 
-                            Button uiButton = CreateButton(a.Content, a.Arguments, a.ImageUri, a.ActivationType, toastContent.Scenario);
+                            Button uiButton = CreateButton(a.Content!, a.Arguments!, a.ImageUri, a.ActivationType, toastContent.Scenario);
 
                             AssignId(uiButton, a.Id);
 
@@ -800,7 +756,6 @@ namespace NotificationsVisualizerLibrary
                                 // In 19H1 (and possibly even earlier), single buttons stretch full width...
                                 // so do nothing at all!
                             }
-
                             else if (CurrFeatureSet.RS3_Style_Toasts
                                 || !CurrFeatureSet.RS1_Style_Toasts)
                             {
@@ -808,7 +763,6 @@ namespace NotificationsVisualizerLibrary
                                 // by adding a blank entry first
                                 AddButton(new Border());
                             }
-
                             else
                             {
                                 // In Anniversary Update the button will increase to fit the text
@@ -818,13 +772,12 @@ namespace NotificationsVisualizerLibrary
                             // Then add the actual button (so it appears on the right half)
                             AddButton(uiButton);
                         }
-
                         else
                         {
                             // Initialize buttons
                             foreach (Model.BaseElements.Action a in actionElements)
                             {
-                                Button uiButton = CreateButton(a.Content, a.Arguments, a.ImageUri, a.ActivationType, toastContent.Scenario);
+                                Button uiButton = CreateButton(a.Content!, a.Arguments!, a.ImageUri, a.ActivationType, toastContent.Scenario);
 
                                 AssignId(uiButton, a.Id);
 
@@ -840,10 +793,10 @@ namespace NotificationsVisualizerLibrary
 
                     if (actions.ContextMenuItems != null && actions.ContextMenuItems.Any())
                     {
-                        List<MenuFlyoutItem> items = new List<MenuFlyoutItem>();
+                        List<MenuFlyoutItem> items = [];
                         foreach (Model.BaseElements.Action i in actions.ContextMenuItems)
                         {
-                            MenuFlyoutItem menuItem = new MenuFlyoutItem()
+                            MenuFlyoutItem menuItem = new()
                             {
                                 Text = i.Content
                             };
@@ -856,7 +809,7 @@ namespace NotificationsVisualizerLibrary
                             items.Add(menuItem);
                         }
 
-                        AssignMenuFlyout(items.ToArray());
+                        AssignMenuFlyout([.. items]);
                     }
                 }
             }
@@ -864,32 +817,27 @@ namespace NotificationsVisualizerLibrary
             OnIsExpandedChanged(null);
         }
 
-        private T AssignId<T>(T uiElement, string id) where T : FrameworkElement
+        private T AssignId<T>(T uiElement, string? id) where T : FrameworkElement
         {
             if (id != null)
             {
                 uiElement.Name = id;
-                _elementsWithIds[id] = uiElement;
+                _elementsWithIds![id] = uiElement;
             }
 
             return uiElement;
         }
 
-        private Thickness GetInputAndButtonMargin()
-        {
-            return CurrFeatureSet.RS3_Style_Toasts
+        private Thickness GetInputAndButtonMargin() =>
+            CurrFeatureSet.RS3_Style_Toasts
                 ? new Thickness(0, 0, 0, GetMarginBelowInputOrButton())
                 : new Thickness(0, 0, 0, GetMarginBelowInputOrButton());
-        }
 
-        private int GetMarginBelowInputOrButton()
-        {
-            return CurrFeatureSet.RS3_Style_Toasts ? 16 : 12;
-        }
+        private int GetMarginBelowInputOrButton() => CurrFeatureSet.RS3_Style_Toasts ? 16 : 12;
 
-        private TextBox CreateTextBox(string id, string title, string defaultInput, string placeHolderContent, bool hintVisible)
+        private TextBox CreateTextBox(string? id, string? title, string? defaultInput, string? placeHolderContent, bool hintVisible)
         {
-            TextBox tb = new TextBox()
+            TextBox tb = new()
             {
                 Margin = GetInputAndButtonMargin(),
                 Tag = id,
@@ -916,7 +864,7 @@ namespace NotificationsVisualizerLibrary
 
             if (id != null)
             {
-                _elementsWithIds[id] = tb;
+                _elementsWithIds![id] = tb;
             }
 
             if (!hintVisible)
@@ -927,9 +875,9 @@ namespace NotificationsVisualizerLibrary
             return tb;
         }
 
-        private ComboBox CreateComboBox(string id, string title, Selection[] items, string defaultInput, bool hintVisible)
+        private ComboBox CreateComboBox(string? id, string? title, Selection[] items, string? defaultInput, bool hintVisible)
         {
-            ComboBox cb = new ComboBox()
+            ComboBox cb = new()
             {
                 Margin = GetInputAndButtonMargin(),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -945,14 +893,14 @@ namespace NotificationsVisualizerLibrary
 
             if (defaultInput != null)
             {
-                cb.SelectedItem = items.FirstOrDefault(x => x.Id.Equals(defaultInput));
+                cb.SelectedItem = items.FirstOrDefault(x => x.Id!.Equals(defaultInput));
             }
 
             _currInputs.Add(new SelectionInput(cb));
 
             if (id != null)
             {
-                _elementsWithIds[id] = cb;
+                _elementsWithIds![id] = cb;
             }
 
             if (!hintVisible)
@@ -965,7 +913,7 @@ namespace NotificationsVisualizerLibrary
 
         private ValueSet GetCurrentUserInput()
         {
-            ValueSet answer = new ValueSet();
+            ValueSet answer = [];
 
             foreach (IInput input in _currInputs)
             {
@@ -975,7 +923,7 @@ namespace NotificationsVisualizerLibrary
             return answer;
         }
 
-        private Button CreateButton(string content, string arguments, string imageUri, ActivationType activationType, Scenario scenarioType)
+        private Button CreateButton(string content, string arguments, string? imageUri, ActivationType activationType, Scenario scenarioType)
         {
             // Auto-generate content
             if (activationType == ActivationType.System && content.Length == 0)
@@ -993,30 +941,21 @@ namespace NotificationsVisualizerLibrary
                 }
             }
 
-            Button b;
-
-            switch (scenarioType)
+            Button b = scenarioType switch
             {
-                case Scenario.IncomingCall:
-                    b = new CallingButton()
-                    {
-                        Text = content,
-                        ImageUri = imageUri
-                    };
-                    break;
-
-                default:
-                    b = new Button()
-                    {
-                        Content = content,
-                        HorizontalAlignment = HorizontalAlignment.Stretch,
-                        Margin = GetInputAndButtonMargin(),
-                        VerticalAlignment = VerticalAlignment.Top
-                    };
-                    break;
-
-            }
-
+                Scenario.IncomingCall => new CallingButton()
+                {
+                    Text = content,
+                    ImageUri = imageUri
+                },
+                _ => new Button()
+                {
+                    Content = content,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Margin = GetInputAndButtonMargin(),
+                    VerticalAlignment = VerticalAlignment.Top
+                },
+            };
             b.Click += delegate
             {
                 TriggerActivation(arguments, activationType);
@@ -1025,9 +964,9 @@ namespace NotificationsVisualizerLibrary
             return b;
         }
 
-        private FrameworkElement CreateImageButton(string src, string arguments, ActivationType activationType)
+        private Image CreateImageButton(string src, string arguments, ActivationType activationType)
         {
-            Image uiButton = new Image()
+            Image uiButton = new()
             {
                 Source = ImageHelper.GetBitmap(src),
                 Stretch = Stretch.Uniform,
@@ -1046,19 +985,13 @@ namespace NotificationsVisualizerLibrary
             return uiButton;
         }
 
-        private void TriggerActivation(string arguments, ActivationType activationType, ValueSet userInputs = null)
+        private void TriggerActivation(string? arguments, ActivationType activationType, ValueSet? userInputs = null)
         {
-            if (arguments == null)
-            {
-                arguments = "";
-            }
+            arguments ??= "";
 
-            if (userInputs == null)
-            {
-                userInputs = GetCurrentUserInput();
-            }
+            userInputs ??= GetCurrentUserInput();
 
-            PreviewToastNotificationActivatedEventArgs args = new PreviewToastNotificationActivatedEventArgs(arguments, userInputs);
+            PreviewToastNotificationActivatedEventArgs args = new(arguments, userInputs);
 
             switch (activationType)
             {
@@ -1084,23 +1017,14 @@ namespace NotificationsVisualizerLibrary
         {
             // In RS3, Action Center started returning the inputs when body of toast clicked. So for non-RS3 we initialize an empty value set, and for
             // RS3+ we pass null which will automatically collect the inputs
-            TriggerActivation(_currLaunch, _currActivationType, userInputs: CurrFeatureSet.RS3_Style_Toasts ? null : new ValueSet());
+            TriggerActivation(_currLaunch, _currActivationType, userInputs: CurrFeatureSet.RS3_Style_Toasts ? null : []);
         }
 
-        private void CloseIcon_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            e.Handled = true;
-        }
+        private void CloseIcon_Tapped(object sender, TappedRoutedEventArgs e) => e.Handled = true;
 
-        private void AddInput(UIElement el)
-        {
-            StackPanelInputs.Children.Add(el);
-        }
+        private void AddInput(UIElement el) => StackPanelInputs.Children.Add(el);
 
-        private void AddButton(FrameworkElement el)
-        {
-            ButtonsContainer.Items.Add(el);
-        }
+        private void AddButton(FrameworkElement el) => ButtonsContainer.Items.Add(el);
 
         #region DeviceFamily
 
@@ -1120,11 +1044,13 @@ namespace NotificationsVisualizerLibrary
             set => SetValue(DeviceFamilyProperty, value);
         }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private static void OnDeviceFamilyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewToast).OnDeviceFamilyChanged(e);
+            (sender as PreviewToast)!.OnDeviceFamilyChanged(e);
         }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private void OnDeviceFamilyChanged(DependencyPropertyChangedEventArgs e)
         {
             // Feature set is affected
@@ -1149,23 +1075,20 @@ namespace NotificationsVisualizerLibrary
             set => SetValue(OSBuildNumberProperty, value);
         }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private static void OnOSBuildNumberChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewToast).OnOSBuildNumberChanged(e);
+            (sender as PreviewToast)!.OnOSBuildNumberChanged(e);
         }
 
-        private void ButtonExpandCollapse_Click(object sender, RoutedEventArgs e)
-        {
-            IsExpanded = !IsExpanded;
-        }
+        private void ButtonExpandCollapse_Click(object sender, RoutedEventArgs e) => IsExpanded = !IsExpanded;
 
-        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e)
-        {
-            UpdateFeatureSet();
-        }
+        [MemberNotNull(nameof(_elementsWithIds))]
+        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e) => UpdateFeatureSet();
 
         internal FeatureSet CurrFeatureSet { get; private set; }
 
+        [MemberNotNull(nameof(_elementsWithIds))]
         private void UpdateFeatureSet()
         {
             CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);

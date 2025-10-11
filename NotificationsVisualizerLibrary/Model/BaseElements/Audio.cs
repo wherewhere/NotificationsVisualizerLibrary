@@ -6,16 +6,14 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastAudio", NotificationType.Toast)]
-    internal class Audio : AdaptiveChildElement
+    internal partial class Audio(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures)
     {
-        public Audio(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         private const string ATTR_SRC = "src";
         private const string ATTR_LOOP = "loop";
         private const string ATTR_SILENT = "silent";
 
         [ObjectModelProperty("Src")]
-        public Uri Src { get; set; }
+        public Uri? Src { get; set; }
 
         [ObjectModelProperty("Loop", false)]
         public bool Loop { get; set; }
@@ -30,7 +28,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 throw new IncompleteElementException();
             }
 
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -40,10 +38,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
         internal virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // src is optional
-            XAttribute srcAttr = attributes.PopAttribute(ATTR_SRC);
+            XAttribute? srcAttr = attributes.PopAttribute(ATTR_SRC);
             if (srcAttr != null)
             {
-                if (Uri.TryCreate(srcAttr.Value, UriKind.RelativeOrAbsolute, out Uri srcUri))
+                if (Uri.TryCreate(srcAttr.Value, UriKind.RelativeOrAbsolute, out Uri? srcUri))
                 {
                     Src = srcUri;
                 }
@@ -65,9 +63,6 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
     }
 }

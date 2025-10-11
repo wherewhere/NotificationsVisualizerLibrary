@@ -11,16 +11,15 @@ namespace NotificationsVisualizerLibrary.Manifest
     public sealed class Package
     {
         [XmlIgnore]
-        public string RootPath { get; set; }
+        public string? RootPath { get; set; }
 
         [XmlElement]
-        public Applications Applications { get; set; }
+        public Applications? Applications { get; set; }
 
-        public IAsyncOperation<string> GetMrtUri(string path)
-        {
-            return Task.Run(async delegate
+        public IAsyncOperation<string?> GetMrtUri(string path) =>
+            Task.Run(async delegate
             {
-                string fullLogoPath = Path.Combine(RootPath, path);
+                string fullLogoPath = Path.Combine(RootPath!, path);
 
                 StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(fullLogoPath);
 
@@ -34,6 +33,5 @@ namespace NotificationsVisualizerLibrary.Manifest
 
                 return null;
             }).AsAsyncOperation();
-        }
     }
 }

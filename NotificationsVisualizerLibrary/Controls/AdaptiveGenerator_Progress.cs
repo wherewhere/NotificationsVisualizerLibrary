@@ -5,12 +5,9 @@ namespace NotificationsVisualizerLibrary.Controls
 {
     internal static class AdaptiveGenerator_Progress
     {
-        public static FrameworkElement Generate(AdaptiveProgress progress)
+        public static FrameworkElement Generate(AdaptiveProgress progress) => new ProgressView()
         {
-            return new ProgressView()
-            {
-                DataContext = progress
-            };
-        }
+            DataContext = progress
+        };
     }
 }

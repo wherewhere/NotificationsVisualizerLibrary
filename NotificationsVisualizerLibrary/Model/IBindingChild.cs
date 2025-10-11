@@ -1,6 +1,4 @@
 ﻿namespace NotificationsVisualizerLibrary.Model
 {
-    internal interface IBindingChild
-    {
-    }
+    internal interface IBindingChild;
 }

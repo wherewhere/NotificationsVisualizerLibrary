@@ -6,20 +6,17 @@ namespace NotificationsVisualizerLibrary.Model
     internal class ObjectModelPropertyAttribute : ObjectModelBaseAttribute
     {
         public string Name { get; private set; }
-        public object DefaultValue { get; private set; }
+        public object? DefaultValue { get; private set; }
 
-        public ObjectModelPropertyAttribute(string name)
-        {
-            Name = name;
-        }
+        public ObjectModelPropertyAttribute(string name) => Name = name;
 
-        public ObjectModelPropertyAttribute(string name, object defaultValue)
+        public ObjectModelPropertyAttribute(string name, object? defaultValue)
         {
             Name = name;
             DefaultValue = defaultValue;
         }
 
-        public ObjectModelPropertyAttribute(string name, object defaultValue, NotificationType context) : base(context)
+        public ObjectModelPropertyAttribute(string name, object? defaultValue, NotificationType context) : base(context)
         {
             Name = name;
             DefaultValue = defaultValue;

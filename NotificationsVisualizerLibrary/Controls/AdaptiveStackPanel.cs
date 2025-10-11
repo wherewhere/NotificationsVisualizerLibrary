@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    public sealed class AdaptiveStackPanel : Panel, IAdaptiveControl
+    public sealed partial class AdaptiveStackPanel : Panel, IAdaptiveControl
     {
         /// <summary>
         /// This is updated after Measure has been called
@@ -24,13 +24,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnIsTopLevelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as AdaptiveStackPanel).OnIsTopLevelChanged(e);
+            (sender as AdaptiveStackPanel)!.OnIsTopLevelChanged(e);
         }
 
-        private void OnIsTopLevelChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void OnIsTopLevelChanged(DependencyPropertyChangedEventArgs e) => InvalidateMeasure();
 
         public bool IsTopLevel
         {
@@ -52,7 +49,7 @@ namespace NotificationsVisualizerLibrary.Controls
                 return new Size();
             }
 
-            Size remainingSize = new Size(availableSize.Width, availableSize.Height);
+            Size remainingSize = new(availableSize.Width, availableSize.Height);
             double totalHeight = 0;
 
             bool first = true;
@@ -74,7 +71,7 @@ namespace NotificationsVisualizerLibrary.Controls
                 bool allowDisplayRegardlessOfFit = IsTopLevel && first;
 
                 // If it's an adaptive stack panel, and it couldn't fit all of its content, we won't end up displaying it (and also stop displaying future children)
-                if (!allowDisplayRegardlessOfFit && child is IAdaptiveControl && !(child as IAdaptiveControl).DoesAllContentFit)
+                if (!allowDisplayRegardlessOfFit && child is IAdaptiveControl control && !control.DoesAllContentFit)
                 {
                     DoesAllContentFit = false;
 
@@ -140,25 +137,13 @@ namespace NotificationsVisualizerLibrary.Controls
             return new Size(desiredWidth, totalHeight);
         }
 
-        private static double EnsureNotNegative(double value)
-        {
-            return value < 0 ? 0 : value;
-        }
+        private static double EnsureNotNegative(double value) => value < 0 ? 0 : value;
 
-        private static bool IsWrappingText(UIElement el)
-        {
-            return IsText(el) && (el as TextBlock).TextWrapping != TextWrapping.NoWrap;
-        }
+        private static bool IsWrappingText(UIElement el) => IsText(el) && (el as TextBlock)!.TextWrapping != TextWrapping.NoWrap;
 
-        private static bool IsText(UIElement el)
-        {
-            return el is TextBlock;
-        }
+        private static bool IsText(UIElement el) => el is TextBlock;
 
-        private static bool IsImage(UIElement el)
-        {
-            return el is AdaptiveImageControl || el is CircleImage;
-        }
+        private static bool IsImage(UIElement el) => el is AdaptiveImageControl or CircleImage;
 
         protected override Size ArrangeOverride(Size finalSize)
         {
@@ -215,10 +200,8 @@ namespace NotificationsVisualizerLibrary.Controls
         {
             double actualDesiredHeight = el.DesiredSize.Height;
 
-            if (el is FrameworkElement)
+            if (el is FrameworkElement frameworkEl)
             {
-                FrameworkElement frameworkEl = el as FrameworkElement;
-
                 // If it has a specific height set, enforce that height
                 if (!double.IsNaN(frameworkEl.Height))
                 {
@@ -238,10 +221,8 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static double GetAffectOfMargin(UIElement el)
         {
-            if (el is FrameworkElement)
+            if (el is FrameworkElement frameworkEl)
             {
-                FrameworkElement frameworkEl = el as FrameworkElement;
-
                 return frameworkEl.Margin.Top + frameworkEl.Margin.Bottom;
             }
 
@@ -250,10 +231,8 @@ namespace NotificationsVisualizerLibrary.Controls
 
         //private static double GetTopMargin(UIElement el)
         //{
-        //    if (el is FrameworkElement)
+        //    if (el is FrameworkElement frameworkEl)
         //    {
-        //        FrameworkElement frameworkEl = el as FrameworkElement;
-
         //        return frameworkEl.Margin.Top;
         //    }
 
@@ -262,10 +241,8 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static double GetBottomMargin(UIElement el)
         {
-            if (el is FrameworkElement)
+            if (el is FrameworkElement frameworkEl)
             {
-                FrameworkElement frameworkEl = el as FrameworkElement;
-
                 return frameworkEl.Margin.Bottom;
             }
 

@@ -7,18 +7,16 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastActionsCustom", NotificationType.Toast)]
-    internal class Actions : AdaptiveParentElement
+    internal partial class Actions(NotificationType context, FeatureSet supportedFeatures) : AdaptiveParentElement(context, supportedFeatures)
     {
-        public Actions(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         internal const string ATTR_HINT_SYSTEMCOMMANDS = "hint-systemCommands";
 
         internal HintSystemCommands HintSystemCommands { get; private set; } = HintSystemCommands.None;
 
-        internal IList<Action> ActionElements { get; private set; } = new List<Action>();
+        internal IList<Action> ActionElements { get; private set; } = [];
 
         [ObjectModelProperty("Inputs")]
-        public IList<Input> Inputs { get; private set; } = new List<Input>();
+        public IList<Input> Inputs { get; private set; } = [];
 
         [ObjectModelProperty("Buttons")]
         public IEnumerable<Action> ButtonsForObjectModel => ActionElements.Where(i => i.Placement == ActionPlacement.Inline);
@@ -33,7 +31,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 throw new IncompleteElementException();
             }
 
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -73,7 +71,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             {
                 case "input":
 
-                    Input input = new Input(Context, SupportedFeatures);
+                    Input input = new(Context, SupportedFeatures);
                     input.Parse(result, child);
 
                     if (!result.IsOkForRender())
@@ -97,7 +95,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
                 case "action":
 
-                    Action action = new Action(Context, SupportedFeatures);
+                    Action action = new(Context, SupportedFeatures);
                     action.Parse(result, child);
 
                     if (!result.IsOkForRender())
@@ -127,7 +125,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
         {
-            return new string[] { ATTR_HINT_SYSTEMCOMMANDS };
+            return (string[])[ATTR_HINT_SYSTEMCOMMANDS];
         }
 
         internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
@@ -143,17 +141,13 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        public override ObjectModelObject ConvertToObject()
+        public override ObjectModelObject? ConvertToObject()
         {
-            switch (HintSystemCommands)
+            return HintSystemCommands switch
             {
-                case HintSystemCommands.SnoozeAndDismiss:
-                    return null;
-
-                case HintSystemCommands.None:
-                default:
-                    return base.ConvertToObject();
-            }
+                HintSystemCommands.SnoozeAndDismiss => null,
+                _ => base.ConvertToObject(),
+            };
         }
     }
 }

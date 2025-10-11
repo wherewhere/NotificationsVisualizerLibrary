@@ -6,6 +6,6 @@ namespace NotificationsVisualizerLibrary.Manifest
     public sealed class Applications
     {
         [XmlElement(ElementName = "Application")]
-        public IList<Application> Application { get; set; }
+        public IList<Application>? Application { get; set; }
     }
 }

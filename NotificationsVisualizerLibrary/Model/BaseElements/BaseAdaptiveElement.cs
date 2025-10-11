@@ -8,39 +8,32 @@ using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
-    internal abstract class BaseAdaptiveElement : BaseElement
+    internal abstract class BaseAdaptiveElement(NotificationType context, FeatureSet supportedFeatures) : BaseElement
     {
         internal const string ATTR_ARGUMENTS = "arguments";
         internal const string ATTR_ACTIVATIONTYPE = "activationType";
         internal const string ATTR_STATE = "state";
 
-        public BaseAdaptiveElement(NotificationType context, FeatureSet supportedFeatures)
-        {
-            Context = context;
-            SupportedFeatures = supportedFeatures;
-        }
+        public NotificationType Context { get; protected set; } = context;
 
-        public NotificationType Context { get; protected set; }
-
-        public FeatureSet SupportedFeatures { get; private set; }
+        public FeatureSet SupportedFeatures { get; private set; } = supportedFeatures;
 
         internal void ParseActivatableElementAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
-            IActivatableElement el = this as IActivatableElement;
+            IActivatableElement? el = this as IActivatableElement;
 
             // activationType is optional
             if (TryParseEnum(result, attributes, ATTR_ACTIVATIONTYPE, out ActivationType type))
             {
-                el.ActivationType = type;
+                el!.ActivationType = type;
             }
 
-
             // arguments is required
-            XAttribute attrArguments = attributes.PopAttribute(ATTR_ARGUMENTS);
+            XAttribute? attrArguments = attributes.PopAttribute(ATTR_ARGUMENTS);
             if (attrArguments == null)
             {
                 // If we're in an activation type that requires attributes
-                if (el.ActivationType != ActivationType.None)
+                if (el!.ActivationType != ActivationType.None)
                 {
                     result.AddErrorButRenderAllowed("arguments attribute is required.", XmlTemplateParser.GetErrorPositionInfo(node));
                     throw new IncompleteElementException();
@@ -48,29 +41,29 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
             else
             {
-                el.Arguments = attrArguments.Value;
+                el!.Arguments = attrArguments.Value;
             }
         }
 
-        public virtual ObjectModelObject ConvertToObject()
+        public virtual ObjectModelObject? ConvertToObject()
         {
-            ObjectModelClassAttribute classAttr = GetObjectModelClassAttribute();
+            ObjectModelClassAttribute? classAttr = GetObjectModelClassAttribute();
             if (classAttr == null)
             {
                 return null;
             }
 
-            ObjectModelObject answer = new ObjectModelObject(classAttr.Name);
+            ObjectModelObject answer = new(classAttr.Name);
 
-            foreach (PropertyInfo propInfo in this.GetType().GetProperties())
+            foreach (PropertyInfo propInfo in GetType().GetProperties())
             {
-                ObjectModelPropertyAttribute propAttr = GetObjectModelPropertyAttribute(propInfo);
+                ObjectModelPropertyAttribute? propAttr = GetObjectModelPropertyAttribute(propInfo);
                 if (propAttr != null)
                 {
-                    object propVal = propInfo.GetValue(this);
-                    if (!object.Equals(propAttr.DefaultValue, propVal))
+                    object? propVal = propInfo.GetValue(this);
+                    if (!Equals(propAttr.DefaultValue, propVal))
                     {
-                        IObjectModelValue value = CreateObject(propVal);
+                        IObjectModelValue? value = CreateObject(propVal);
 
                         if (value != null)
                         {
@@ -80,7 +73,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                 }
                 else
                 {
-                    ObjectModelBindingPropertyAttribute bindingPropAttr = GetObjectModelBindingPropertyAttribute(propInfo);
+                    ObjectModelBindingPropertyAttribute? bindingPropAttr = GetObjectModelBindingPropertyAttribute(propInfo);
                     if (bindingPropAttr != null)
                     {
                         if (propInfo.GetValue(this) is string bindingName)
@@ -94,51 +87,45 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             return answer;
         }
 
-        private IObjectModelValue CreateObject(object propVal)
+        private IObjectModelValue? CreateObject(object? propVal)
         {
-            if (propVal is BaseAdaptiveElement)
+            switch (propVal)
             {
-                return (propVal as BaseAdaptiveElement).ConvertToObject();
-            }
-            else if (propVal is IEnumerable && !(propVal is string) && !(propVal is IObjectModelValue))
-            {
-                ObjectModelListInitialization listInit = new ObjectModelListInitialization();
-                foreach (object o in propVal as IEnumerable)
-                {
-                    listInit.Add(CreateObject(o));
-                }
-                return listInit;
-            }
-            else if (propVal is Enum)
-            {
-                ObjectModelEnumAttribute enumAttr = GetForContext(propVal.GetType().GetTypeInfo().GetCustomAttributes<ObjectModelEnumAttribute>());
-                if (enumAttr != null)
-                {
-                    return new ObjectModelEnum(enumAttr.Name, propVal.ToString());
-                }
+                case BaseAdaptiveElement element:
+                    return element.ConvertToObject();
+
+                case IEnumerable e and not string and not IObjectModelValue:
+                    ObjectModelListInitialization listInit = new();
+                    foreach (object o in e)
+                    {
+                        listInit.Add(CreateObject(o));
+                    }
+                    return listInit;
+
+                case Enum @enum:
+                    ObjectModelEnumAttribute? enumAttr = GetForContext(propVal.GetType().GetTypeInfo().GetCustomAttributes<ObjectModelEnumAttribute>());
+                    if (enumAttr != null)
+                    {
+                        return new ObjectModelEnum(enumAttr.Name, @enum.ToString());
+                    }
+                    break;
             }
 
             return ObjectModelObject.Create(propVal);
         }
 
-        private ObjectModelClassAttribute GetObjectModelClassAttribute()
-        {
-            return GetForContext(this.GetType().GetTypeInfo().GetCustomAttributes<ObjectModelClassAttribute>());
-        }
+        private ObjectModelClassAttribute? GetObjectModelClassAttribute() =>
+            GetForContext(GetType().GetTypeInfo().GetCustomAttributes<ObjectModelClassAttribute>());
 
-        private ObjectModelPropertyAttribute GetObjectModelPropertyAttribute(PropertyInfo propInfo)
-        {
-            return GetForContext(propInfo.GetCustomAttributes<ObjectModelPropertyAttribute>());
-        }
+        private ObjectModelPropertyAttribute? GetObjectModelPropertyAttribute(PropertyInfo propInfo) =>
+            GetForContext(propInfo.GetCustomAttributes<ObjectModelPropertyAttribute>());
 
-        private ObjectModelBindingPropertyAttribute GetObjectModelBindingPropertyAttribute(PropertyInfo propInfo)
-        {
-            return GetForContext(propInfo.GetCustomAttributes<ObjectModelBindingPropertyAttribute>());
-        }
+        private ObjectModelBindingPropertyAttribute? GetObjectModelBindingPropertyAttribute(PropertyInfo propInfo) =>
+            GetForContext(propInfo.GetCustomAttributes<ObjectModelBindingPropertyAttribute>());
 
-        private T GetForContext<T>(IEnumerable<T> attributes) where T : ObjectModelBaseAttribute
+        private T? GetForContext<T>(IEnumerable<T> attributes) where T : ObjectModelBaseAttribute
         {
-            T matching = attributes.FirstOrDefault(i => i.Context != null && i.Context.Value == Context);
+            T? matching = attributes.FirstOrDefault(i => i.Context != null && i.Context.Value == Context);
             return matching ?? attributes.FirstOrDefault(i => i.Context == null);
         }
     }

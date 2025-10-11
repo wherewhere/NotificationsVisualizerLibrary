@@ -9,7 +9,7 @@ namespace NotificationsVisualizerLibrary.Model
 
         public BadgeValueType Type { get; private set; } = BadgeValueType.none;
 
-        private BadgeValue(string value)
+        private BadgeValue(string? value)
         {
             if (value == null)
             {
@@ -44,33 +44,16 @@ namespace NotificationsVisualizerLibrary.Model
             //otherwise their value wasn't valid, and we fall back to none
         }
 
-        public override string ToString()
-        {
-            if (Type == BadgeValueType.none)
-            {
-                return "";
-            }
+        public override string ToString() => Type == BadgeValueType.none ? "" : Type == BadgeValueType.integer ? Integer <= 0 ? "" : Integer.ToString() : Type.ToString();
 
-            return Type == BadgeValueType.integer ? Integer <= 0 ? "" : Integer.ToString() : Type.ToString();
-        }
+        public static BadgeValue Parse(string? str) => new(str);
 
-        public static BadgeValue Parse(string str)
-        {
-            return new BadgeValue(str);
-        }
-
-        public static BadgeValue Default()
-        {
-            return new BadgeValue(null);
-        }
+        public static BadgeValue Default() => new(null);
 
         /// <summary>
         /// Returns true if there's a badge to be displayed. Otherwise returns false.
         /// </summary>
         /// <returns></returns>
-        public bool HasBadge()
-        {
-            return Type != BadgeValueType.none && (Type != BadgeValueType.integer || Integer > 0);
-        }
+        public bool HasBadge() => Type != BadgeValueType.none && (Type != BadgeValueType.integer || Integer > 0);
     }
 }

@@ -38,10 +38,10 @@ namespace NotificationsVisualizerLibraryTest
             {
                 string tileXml = string.Format(xml, i, i % 100);
 
-                XmlDocument xmlDoc = new XmlDocument();
+                XmlDocument xmlDoc = new();
                 xmlDoc.LoadXml(tileXml);
 
-                TileNotification notification = new TileNotification(xmlDoc);
+                TileNotification notification = new(xmlDoc);
 
                 updater.Update(notification);
 

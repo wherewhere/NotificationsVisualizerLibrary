@@ -18,36 +18,23 @@ namespace NotificationsVisualizerLibrary
         private const int TH2 = 10586;
         private const int TH1 = 10240;
 
-        private class SupportedInAttribute : Attribute
+        [AttributeUsage(AttributeTargets.Property)]
+        private class SupportedInAttribute(int minBuildNumber) : Attribute
         {
-            public Version MinVersion { get; private set; }
-
-            public SupportedInAttribute(int minBuildNumber)
-            {
-                MinVersion = new Version(10, 0, minBuildNumber, 0);
-            }
+            public Version MinVersion { get; private set; } = new Version(10, 0, minBuildNumber, 0);
         }
 
-        private class MobileSupportedInAttribute : SupportedInAttribute
-        {
-            public MobileSupportedInAttribute(int minBuildNumber) : base(minBuildNumber) { }
-        }
+        private class MobileSupportedInAttribute(int minBuildNumber) : SupportedInAttribute(minBuildNumber);
 
-        private class DesktopSupportedInAttribute : SupportedInAttribute
-        {
-            public DesktopSupportedInAttribute(int minBuildNumber) : base(minBuildNumber) { }
-        }
+        private class DesktopSupportedInAttribute(int minBuildNumber) : SupportedInAttribute(minBuildNumber);
 
-        public static readonly Version CURRENT_RELEASED_OS_VERSION = new Version(10, 0, R_19H2, 0);
+        public static readonly Version CURRENT_RELEASED_OS_VERSION = new(10, 0, R_19H2, 0);
 
         /// <summary>
         /// Dynamically gets the current OS version
         /// </summary>
         /// <returns></returns>
-        public static int GetCurrentOSBuildNumber()
-        {
-            return DeviceInfoHelper.GetCurrentOSBuildNumber();
-        }
+        public static int GetCurrentOSBuildNumber() => DeviceInfoHelper.GetCurrentOSBuildNumber();
 
         private static DeviceFamily? _currentDeviceFamily;
         /// <summary>
@@ -56,19 +43,11 @@ namespace NotificationsVisualizerLibrary
         /// <returns></returns>
         public static DeviceFamily GetCurrentDeviceFamily()
         {
-            if (_currentDeviceFamily == null)
+            _currentDeviceFamily ??= AnalyticsInfo.VersionInfo.DeviceFamily switch
             {
-                switch (AnalyticsInfo.VersionInfo.DeviceFamily)
-                {
-                    case "Windows.Mobile":
-                        _currentDeviceFamily = DeviceFamily.Mobile;
-                        break;
-
-                    default:
-                        _currentDeviceFamily = DeviceFamily.Desktop;
-                        break;
-                }
-            }
+                "Windows.Mobile" => (DeviceFamily?)DeviceFamily.Mobile,
+                _ => (DeviceFamily?)DeviceFamily.Desktop,
+            };
 
             return _currentDeviceFamily.Value;
         }
@@ -147,7 +126,7 @@ namespace NotificationsVisualizerLibrary
                 return GetExperimental();
             }
 
-            FeatureSet answer = new FeatureSet();
+            FeatureSet answer = new();
 
             Type type = answer.GetType();
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
@@ -155,7 +134,7 @@ namespace NotificationsVisualizerLibrary
             // Look through all boolean properties
             foreach (PropertyInfo p in properties.Where(i => i.PropertyType == typeof(bool)))
             {
-                SupportedInAttribute supportedIn = p.GetCustomAttributes<SupportedInAttribute>().Where(i => i.GetType() == typeof(SupportedInAttribute)).FirstOrDefault();
+                SupportedInAttribute? supportedIn = p.GetCustomAttributes<SupportedInAttribute>().Where(i => i.GetType() == typeof(SupportedInAttribute)).FirstOrDefault();
 
                 // If we're in a build where that exists
                 if (supportedIn != null && buildNumber >= supportedIn.MinVersion.Build)
@@ -167,21 +146,19 @@ namespace NotificationsVisualizerLibrary
                 switch (deviceFamily)
                 {
                     case DeviceFamily.Mobile:
-                        MobileSupportedInAttribute mobileSupportedIn = p.GetCustomAttribute<MobileSupportedInAttribute>();
+                        MobileSupportedInAttribute? mobileSupportedIn = p.GetCustomAttribute<MobileSupportedInAttribute>();
                         if (mobileSupportedIn != null && buildNumber >= mobileSupportedIn.MinVersion.Build)
                         {
                             p.SetValue(answer, true);
                         }
-
                         break;
 
                     case DeviceFamily.Desktop:
-                        DesktopSupportedInAttribute desktopSupportedIn = p.GetCustomAttribute<DesktopSupportedInAttribute>();
+                        DesktopSupportedInAttribute? desktopSupportedIn = p.GetCustomAttribute<DesktopSupportedInAttribute>();
                         if (desktopSupportedIn != null && buildNumber >= desktopSupportedIn.MinVersion.Build)
                         {
                             p.SetValue(answer, true);
                         }
-
                         break;
                 }
             }
@@ -195,7 +172,7 @@ namespace NotificationsVisualizerLibrary
         /// <returns></returns>
         public static FeatureSet GetExperimental()
         {
-            FeatureSet answer = new FeatureSet();
+            FeatureSet answer = new();
 
             Type type = answer.GetType();
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();

@@ -2,17 +2,15 @@
 
 namespace NotificationsVisualizerLibrary.Model
 {
-    internal abstract class AdaptiveChildElement : BaseAdaptiveElement
+    internal abstract class AdaptiveChildElement(NotificationType context, FeatureSet supportedFeatures) : BaseAdaptiveElement(context, supportedFeatures)
     {
-        public AdaptiveChildElement(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
-        internal AdaptiveParentElement Parent { get; set; }
+        internal AdaptiveParentElement? Parent { get; set; }
 
         /// <summary>
         /// Returns the next element below this current element
         /// </summary>
         /// <returns></returns>
-        internal virtual AdaptiveChildElement GetNextElementBelowThisOne()
+        internal virtual AdaptiveChildElement? GetNextElementBelowThisOne()
         {
             if (Parent == null)
             {

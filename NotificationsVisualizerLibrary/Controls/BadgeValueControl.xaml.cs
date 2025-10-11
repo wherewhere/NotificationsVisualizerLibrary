@@ -19,7 +19,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         public BadgeValue Value
         {
-            get => GetValue(ValueProperty) as BadgeValue;
+            get => (GetValue(ValueProperty) as BadgeValue)!;
             set => SetValue(ValueProperty, value);
         }
     }

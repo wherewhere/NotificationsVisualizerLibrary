@@ -12,18 +12,12 @@ namespace NotificationsVisualizerLibrary
     {
         private readonly PreviewTile _previewTile;
 
-        internal PreviewBadgeUpdater(PreviewTile previewTile)
-        {
-            _previewTile = previewTile;
-        }
+        internal PreviewBadgeUpdater(PreviewTile previewTile) => _previewTile = previewTile;
 
         /// <summary>
         /// Removes the badge from the tile that the updater is bound to.
         /// </summary>
-        public void Clear()
-        {
-            _previewTile.SetBadge(BadgeValue.Default());
-        }
+        public void Clear() => _previewTile.SetBadge(BadgeValue.Default());
 
         /// <summary>
         /// Applies a change to the badge's glyph or number.

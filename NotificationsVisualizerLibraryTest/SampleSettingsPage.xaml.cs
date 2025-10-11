@@ -49,14 +49,11 @@ namespace NotificationsVisualizerLibraryTest
             await tile.UpdateAsync();
         }
 
-        private IEnumerable<PreviewTile> AllTiles()
-        {
-            return new PreviewTile[]
-            {
+        private PreviewTile[] AllTiles() =>
+            [
                 MediumPreviewTile,
                 WidePreviewTile
-            };
-        }
+            ];
 
         private void UpdateTileNotifications()
         {
@@ -70,7 +67,7 @@ namespace NotificationsVisualizerLibraryTest
                 return;
             }
 
-            TileBindingContentAdaptive bindingContent = new TileBindingContentAdaptive();
+            TileBindingContentAdaptive bindingContent = new();
 
             // NOTE: In a real app, this data would probably be dynamically generated from actual user data
 
@@ -106,12 +103,12 @@ namespace NotificationsVisualizerLibraryTest
                 });
             }
 
-            TileBinding binding = new TileBinding()
+            TileBinding binding = new()
             {
                 Content = bindingContent
             };
 
-            TileContent content = new TileContent()
+            TileContent content = new()
             {
                 Visual = new TileVisual()
                 {

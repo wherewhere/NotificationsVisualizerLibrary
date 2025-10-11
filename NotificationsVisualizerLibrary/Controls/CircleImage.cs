@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    public sealed class CircleImage : Control, IAdaptiveControl
+    public sealed partial class CircleImage : Control, IAdaptiveControl
     {
         public bool DoesAllContentFit { get; private set; }
 
@@ -21,7 +21,7 @@ namespace NotificationsVisualizerLibrary.Controls
                 typeof(CircleImage),
                 new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
 
-        public BitmapImage Source
+        public BitmapImage? Source
         {
             get => GetValue(SourceProperty) as BitmapImage;
             set => SetValue(SourceProperty, value);
@@ -42,7 +42,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnSourcePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as CircleImage).OnSourcePropertyChanged(e);
+            (sender as CircleImage)!.OnSourcePropertyChanged(e);
         }
 
         private void OnSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -76,10 +76,7 @@ namespace NotificationsVisualizerLibrary.Controls
             return desiredSize;
         }
 
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            return base.ArrangeOverride(CalculateDesiredSize(finalSize));
-        }
+        protected override Size ArrangeOverride(Size finalSize) => base.ArrangeOverride(CalculateDesiredSize(finalSize));
 
         private Size CalculateDesiredSize(Size availableSize)
         {
@@ -149,13 +146,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnStretchPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as CircleImage).OnStretchPropertyChanged(e);
+            (sender as CircleImage)!.OnStretchPropertyChanged(e);
         }
 
-        private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e) => InvalidateMeasure();
 
         public CircleImageStretch Stretch
         {

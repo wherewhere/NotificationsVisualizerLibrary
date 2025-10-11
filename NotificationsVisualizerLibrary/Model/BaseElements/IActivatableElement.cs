@@ -2,7 +2,7 @@
 {
     internal interface IActivatableElement
     {
-        string Arguments { get; set; }
+        string? Arguments { get; set; }
 
         ActivationType ActivationType { get; set; }
     }

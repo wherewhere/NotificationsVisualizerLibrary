@@ -4,7 +4,7 @@
     {
         public int LineNumber { get; set; }
 
-        internal static readonly ErrorPositionInfo Default = new ErrorPositionInfo()
+        internal static readonly ErrorPositionInfo Default = new()
         {
             LineNumber = 0
         };
@@ -21,7 +21,7 @@
 
         public ParseErrorType Type { get; private set; }
 
-        public ErrorPositionInfo Position { get; private set; }
+        public ErrorPositionInfo? Position { get; private set; }
 
         public ParseError(ParseErrorType type, string message)
         {
@@ -36,12 +36,10 @@
             Position = position;
         }
 
-        public bool Equals(ParseError other)
-        {
-            return Message.Equals(other.Message)
+        public bool Equals(ParseError other) =>
+            Message.Equals(other.Message)
                 && Type == other.Type
                 && ((Position == null && other.Position == null) || (Position != null && other.Position != null && Position.Equals(other.Position)));
-        }
     }
 
     public enum ParseErrorType

@@ -17,7 +17,7 @@ namespace NotificationsVisualizerLibrary.Controls
             needsMargin = !imageNode.HintRemoveMargin.GetValueOrDefault(false);
 
             FrameworkElement imageControl;
-            BitmapImage bmp = ImageHelper.GetBitmap(imageNode.Src);
+            BitmapImage? bmp = ImageHelper.GetBitmap(imageNode.Src);
 
             HintImageAlign hintAlign = imageNode.HintAlign;
             if (hintAlign == HintImageAlign.Default)
@@ -48,25 +48,13 @@ namespace NotificationsVisualizerLibrary.Controls
                 };
             }
 
-            switch (hintAlign)
+            imageControl.HorizontalAlignment = hintAlign switch
             {
-                case HintImageAlign.Left:
-                    imageControl.HorizontalAlignment = HorizontalAlignment.Left;
-                    break;
-
-                case HintImageAlign.Center:
-                    imageControl.HorizontalAlignment = HorizontalAlignment.Center;
-                    break;
-
-                case HintImageAlign.Right:
-                    imageControl.HorizontalAlignment = HorizontalAlignment.Right;
-                    break;
-
-                default:
-                    imageControl.HorizontalAlignment = HorizontalAlignment.Stretch; //images fill available width
-                    break;
-            }
-
+                HintImageAlign.Left => HorizontalAlignment.Left,
+                HintImageAlign.Center => HorizontalAlignment.Center,
+                HintImageAlign.Right => HorizontalAlignment.Right,
+                _ => HorizontalAlignment.Stretch,//images fill available width
+            };
             imageControl.VerticalAlignment = VerticalAlignment.Top; //images don't fill available height
 
             if (!imageNode.HintRemoveMargin.GetValueOrDefault(false))

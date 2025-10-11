@@ -5,7 +5,7 @@ namespace NotificationsVisualizerLibrary.Model
 {
     internal abstract class BindableBase : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         internal void SetProperty<T>(ref T storage, T value, [CallerMemberName] string name = "")
         {
@@ -18,10 +18,7 @@ namespace NotificationsVisualizerLibrary.Model
             NotifyPropertyChanged(name);
         }
 
-        internal void NotifyPropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        internal void NotifyPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     internal class BindableBaseHelper

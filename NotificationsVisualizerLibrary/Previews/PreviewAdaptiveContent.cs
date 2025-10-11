@@ -1,6 +1,7 @@
 ﻿using NotificationsVisualizerLibrary.Model;
 using NotificationsVisualizerLibrary.Parsers;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -10,10 +11,9 @@ namespace NotificationsVisualizerLibrary.Renderers
     /// A control that renders adaptive content.
     /// </summary>
     [TemplatePart(Name = "PART_AdaptiveContainer", Type = typeof(Border))]
-    public sealed class PreviewAdaptiveContent : Control
+    public sealed partial class PreviewAdaptiveContent : Control
     {
-        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
-        private Border _adaptiveContainer;
+        private Border? _adaptiveContainer;
 
         public double ExternalMargin { get; set; } = 8;
 
@@ -25,6 +25,7 @@ namespace NotificationsVisualizerLibrary.Renderers
         /// <summary>
         /// Obtain the AdaptiveStackPanel root
         /// </summary>
+        [MemberNotNull(nameof(_adaptiveContainer))]
         protected override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -43,11 +44,11 @@ namespace NotificationsVisualizerLibrary.Renderers
         /// <param name="adaptiveContent"></param>
         public ParseResult Initialize(string adaptiveContent)
         {
-            ParseResult result = _parser.ParseAdaptiveContent(adaptiveContent, FeatureSet.Get(FeatureSet.GetCurrentDeviceFamily(), FeatureSet.GetCurrentOSBuildNumber()));
+            ParseResult result = XmlTemplateParser.ParseAdaptiveContent(adaptiveContent, FeatureSet.Get(FeatureSet.GetCurrentDeviceFamily(), FeatureSet.GetCurrentOSBuildNumber()));
 
             if (result.IsOkForRender())
             {
-                InitializeContent(result.AdaptiveContent);
+                InitializeContent(result.AdaptiveContent!);
             }
 
             return result;
@@ -57,17 +58,11 @@ namespace NotificationsVisualizerLibrary.Renderers
         {
             Reset();
 
-            _adaptiveContainer.Child = AdaptiveRenderer.Render(adaptiveContent, new Thickness(GetExternalMargin()));
+            _adaptiveContainer!.Child = AdaptiveRenderer.Render(adaptiveContent, new Thickness(GetExternalMargin()));
         }
 
-        private void Reset()
-        {
-            _adaptiveContainer.Child = null;
-        }
+        private void Reset() => _adaptiveContainer!.Child = null;
 
-        private double GetExternalMargin()
-        {
-            return ExternalMargin;
-        }
+        private double GetExternalMargin() => ExternalMargin;
     }
 }

@@ -6,13 +6,11 @@ using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
-    internal class AdaptiveContainer : AdaptiveParentElement
+    internal partial class AdaptiveContainer(NotificationType context, FeatureSet supportedFeatures) : AdaptiveParentElement(context, supportedFeatures)
     {
-        public AdaptiveContainer(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         private const string ATTR_TEXT_STACKING = "hint-textStacking";
 
-        private readonly List<AdaptiveChildElement> _children = new List<AdaptiveChildElement>();
+        private readonly List<AdaptiveChildElement> _children = [];
         internal IReadOnlyList<AdaptiveChildElement> Children => _children;
 
         public void SwapChildren(IEnumerable<AdaptiveChildElement> newChildren)
@@ -26,7 +24,7 @@ namespace NotificationsVisualizerLibrary.Model
         /// <summary>
         /// Parses a node that has already been parsed some (for example, the Binding actually parses the node first, and then this parses some extra stuff. Binding is responsible for showing warnings about unknown unprocessed attributes after this method has parsed through what it understands).
         /// </summary>
-        internal void ContinueParsing(ParseResult result, XElement node, AttributesHelper attributes, IEnumerable<XElement> children, string baseUri, bool addImageQuery)
+        internal void ContinueParsing(ParseResult result, XElement node, AttributesHelper attributes, IEnumerable<XElement> children, string? baseUri, bool addImageQuery)
         {
             ParseKnownAttributes(node, attributes, result, baseUri, addImageQuery);
 
@@ -44,7 +42,7 @@ namespace NotificationsVisualizerLibrary.Model
             }
         }
 
-        protected void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string baseUri, bool addImageQuery)
+        protected void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string? baseUri, bool addImageQuery)
         {
             if (Context != NotificationType.Toast)
             {
@@ -58,13 +56,13 @@ namespace NotificationsVisualizerLibrary.Model
 
         private bool _hasWarnedAboutTooManyTextElements;
         private bool _hasWarnedAboutTooManyInlineImages;
-        protected void HandleChild(ParseResult result, XElement child, string baseUri, bool addImageQuery)
+        protected void HandleChild(ParseResult result, XElement child, string? baseUri, bool addImageQuery)
         {
             switch (child.Name.LocalName.ToLower())
             {
                 case "text":
 
-                    AdaptiveTextField text = new AdaptiveTextField(Context, SupportedFeatures);
+                    AdaptiveTextField text = new(Context, SupportedFeatures);
                     text.Parse(result, child, true);
 
                     if (!result.IsOkForRender())
@@ -95,7 +93,7 @@ namespace NotificationsVisualizerLibrary.Model
 
                 case "image":
 
-                    AdaptiveImage image = new AdaptiveImage(Context, SupportedFeatures);
+                    AdaptiveImage image = new(Context, SupportedFeatures);
                     image.Parse(result, child, baseUri, addImageQuery);
 
                     if (!result.IsOkForRender())
@@ -130,7 +128,7 @@ namespace NotificationsVisualizerLibrary.Model
                         || SupportedFeatures.AdaptiveToasts
                         )
                     {
-                        AdaptiveGroup group = new AdaptiveGroup(Context, SupportedFeatures);
+                        AdaptiveGroup group = new(Context, SupportedFeatures);
                         group.Parse(result, child, baseUri, addImageQuery);
 
                         if (!result.IsOkForRender())
@@ -152,7 +150,7 @@ namespace NotificationsVisualizerLibrary.Model
 
                     if (Context == NotificationType.Toast && SupportedFeatures.ToastProgressBar)
                     {
-                        AdaptiveProgress progress = new AdaptiveProgress(Context, SupportedFeatures);
+                        AdaptiveProgress progress = new(Context, SupportedFeatures);
                         progress.Parse(result, child);
 
                         if (!result.IsOkForRender())
@@ -169,25 +167,13 @@ namespace NotificationsVisualizerLibrary.Model
             result.AddWarning($"Invalid child \"{child.Name.LocalName}\" under binding element. It will be ignored.", GetErrorPositionInfo(child));
         }
 
-        private void Add(AdaptiveTextField child)
-        {
-            AddHelper(child);
-        }
+        private void Add(AdaptiveTextField child) => AddHelper(child);
 
-        private void Add(AdaptiveImage child)
-        {
-            AddHelper(child);
-        }
+        private void Add(AdaptiveImage child) => AddHelper(child);
 
-        private void Add(AdaptiveGroup child)
-        {
-            AddHelper(child);
-        }
+        private void Add(AdaptiveGroup child) => AddHelper(child);
 
-        private void Add(AdaptiveProgress child)
-        {
-            AddHelper(child);
-        }
+        private void Add(AdaptiveProgress child) => AddHelper(child);
 
         private void AddHelper(AdaptiveChildElement child)
         {
@@ -195,19 +181,10 @@ namespace NotificationsVisualizerLibrary.Model
             child.Parent = this;
         }
 
-        internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
-        {
-            return Children;
-        }
+        internal override IEnumerable<AdaptiveChildElement> GetAllChildren() => Children;
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        internal void RemoveChildAt(int index)
-        {
-            _children.RemoveAt(index);
-        }
+        internal void RemoveChildAt(int index) => _children.RemoveAt(index);
     }
 }

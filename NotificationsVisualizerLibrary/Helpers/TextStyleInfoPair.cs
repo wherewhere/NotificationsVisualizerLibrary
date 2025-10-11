@@ -1,14 +1,8 @@
 ﻿namespace NotificationsVisualizerLibrary.Helpers
 {
-    internal class TextStyleInfoPair
+    internal class TextStyleInfoPair(string styleName, TextStyleInfo textStyleInfo)
     {
-        public string StyleName { get; private set; }
-        public TextStyleInfo TextStyleInfo { get; private set; }
-
-        public TextStyleInfoPair(string styleName, TextStyleInfo textStyleInfo)
-        {
-            StyleName = styleName;
-            TextStyleInfo = textStyleInfo;
-        }
+        public string StyleName { get; private set; } = styleName;
+        public TextStyleInfo TextStyleInfo { get; private set; } = textStyleInfo;
     }
 }

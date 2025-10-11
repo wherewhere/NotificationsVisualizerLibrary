@@ -5,12 +5,10 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastHeader", NotificationType.Toast)]
-    internal class Header : AdaptiveParentElement
+    internal partial class Header(NotificationType context, FeatureSet supportedFeatures) : AdaptiveParentElement(context, supportedFeatures)
     {
         private const string ATTR_ID = "id";
         private const string ATTR_TITLE = "title";
-
-        public Header(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
 
         [ObjectModelProperty("Id")]
         public string Id { get; set; } = "";
@@ -26,7 +24,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         internal void Parse(ParseResult result, XElement node)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -40,7 +38,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             // We'll assume that the developer will add the id before they send the toast.
 
             // title is required
-            XAttribute attrTitle = attributes.PopAttribute(ATTR_TITLE);
+            XAttribute? attrTitle = attributes.PopAttribute(ATTR_TITLE);
             if (attrTitle == null)
             {
                 result.AddErrorButRenderAllowed("title attribute on header element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -62,7 +60,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // id is required
-            XAttribute attrId = attributes.PopAttribute(ATTR_ID);
+            XAttribute? attrId = attributes.PopAttribute(ATTR_ID);
             if (attrId == null)
             {
                 result.AddErrorButRenderAllowed("id attribute on header element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -81,7 +79,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
 
             // arguments is required
-            XAttribute attrArguments = attributes.PopAttribute(ATTR_ARGUMENTS);
+            XAttribute? attrArguments = attributes.PopAttribute(ATTR_ARGUMENTS);
             if (attrArguments == null)
             {
                 result.AddErrorButRenderAllowed("arguments attribute on header element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -99,14 +97,8 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[0];
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        internal override IEnumerable<AdaptiveChildElement> GetAllChildren()
-        {
-            return new AdaptiveChildElement[0];
-        }
+        internal override IEnumerable<AdaptiveChildElement> GetAllChildren() => (AdaptiveChildElement[])[];
     }
 }

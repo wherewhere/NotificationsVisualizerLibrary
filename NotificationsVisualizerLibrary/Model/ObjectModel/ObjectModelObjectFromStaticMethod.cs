@@ -21,26 +21,14 @@ namespace NotificationsVisualizerLibrary.Model
             }
         }
 
-        public List<IObjectModelValue> ParameterValues { get; private set; } = new List<IObjectModelValue>();
+        public List<IObjectModelValue> ParameterValues { get; private set; } = [];
 
-        public override string ToString()
-        {
-            return $"{ClassName}.{MethodName}({string.Join(", ", ParameterValues)})";
-        }
+        public override string ToString() => $"{ClassName}.{MethodName}({string.Join(", ", ParameterValues)})";
 
-        public string ToCPlusPlusString(List<string> declaredVars)
-        {
-            return $"{ClassName}::{MethodName}({string.Join(", ", ParameterValues)})";
-        }
+        public string ToCPlusPlusString(List<string> declaredVars) => $"{ClassName}::{MethodName}({string.Join(", ", ParameterValues)})";
 
-        public string ToJavascriptString()
-        {
-            return ToJavascriptString(new List<string>());
-        }
+        public string ToJavascriptString() => ToJavascriptString([]);
 
-        public string ToJavascriptString(List<string> declaredVars)
-        {
-            return $"{ROOT_JS_NAMESPACE}.{ClassName}.{ObjectModelObject.ToLowerCamelCase(MethodName)}({string.Join(", ", ParameterValues)})";
-        }
+        public string ToJavascriptString(List<string> declaredVars) => $"{ROOT_JS_NAMESPACE}.{ClassName}.{ObjectModelObject.ToLowerCamelCase(MethodName)}({string.Join(", ", ParameterValues)})";
     }
 }

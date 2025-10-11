@@ -1,58 +1,54 @@
 ﻿using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Parsers;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model.BaseElements
 {
     [ObjectModelClass("ToastButton", NotificationType.Toast)]
-    internal class Action : AdaptiveChildElement, IActivatableElement
+    internal partial class Action(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures), IActivatableElement
     {
-        public Action(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         internal const string ATTR_CONTENT = "content";
         internal const string ATTR_IMAGEURI = "imageUri";
         internal const string ATTR_HINT_INPUTID = "hint-inputId";
         internal const string ATTR_PLACEMENT = "placement";
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public ActionPlacement Placement { get; set; }
 
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
-        public string Arguments { get; set; }
+        public string? Arguments { get; set; }
 
         [ObjectModelProperty("ActivationType")]
         public ActivationType ActivationType { get; set; } = ActivationType.Foreground;
 
         [ObjectModelProperty("ImageUri")]
-        public string ImageUri { get; set; }
+        public string? ImageUri { get; set; }
 
         [ObjectModelProperty("InputId")]
-        public string InputId { get; set; }
+        public string? InputId { get; set; }
 
         public bool HintVisible { get; set; } = true;
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
         internal void Parse(ParseResult result, XElement node)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
             HandleRemainingAttributes(attributes, result);
         }
 
+        [MemberNotNull(nameof(Content))]
         internal virtual void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // content is required
-            XAttribute attrContent = attributes.PopAttribute(ATTR_CONTENT);
+            XAttribute? attrContent = attributes.PopAttribute(ATTR_CONTENT);
             if (attrContent == null)
             {
                 result.AddError("content attribute on action element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -65,14 +61,14 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             ParseActivatableElementAttributes(node, attributes, result);
 
             // imageUri is optional
-            XAttribute attrImageUri = attributes.PopAttribute(ATTR_IMAGEURI);
+            XAttribute? attrImageUri = attributes.PopAttribute(ATTR_IMAGEURI);
             if (attrImageUri != null)
             {
                 ImageUri = attrImageUri.Value;
             }
 
             // inputId is optional
-            XAttribute attrInputId = attributes.PopAttribute(ATTR_HINT_INPUTID);
+            XAttribute? attrInputId = attributes.PopAttribute(ATTR_HINT_INPUTID);
             if (attrInputId != null)
             {
                 InputId = attrInputId.Value;
@@ -84,7 +80,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
             }
         }
 
-        protected override Array GetSupportedEnums<TEnum>()
+        protected override TEnum[] GetSupportedEnums<TEnum>()
         {
             // Override the allowed text placement values, since they depend on OS version / supported features
             if (typeof(TEnum) == typeof(ActionPlacement))
@@ -95,15 +91,13 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
                         if (SupportedFeatures.ToastContextMenu)
                         {
-                            return new ActionPlacement[] { ActionPlacement.Inline, ActionPlacement.ContextMenu };
+                            return (new ActionPlacement[] { ActionPlacement.Inline, ActionPlacement.ContextMenu } as TEnum[])!;
                         }
 
-                        return new ActionPlacement[] { ActionPlacement.Inline };
-
-
+                        return (new ActionPlacement[] { ActionPlacement.Inline } as TEnum[])!;
 
                     default:
-                        return new ActionPlacement[] { ActionPlacement.Inline };
+                        return (new ActionPlacement[] { ActionPlacement.Inline } as TEnum[])!;
                 }
             }
 
@@ -112,10 +106,10 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
 
         public override ObjectModelObject ConvertToObject()
         {
-            ObjectModelObject obj = base.ConvertToObject();
+            ObjectModelObject obj = base.ConvertToObject()!;
 
-            obj.ConstructorValues.Add(new ObjectModelString(Content));
-            obj.ConstructorValues.Add(new ObjectModelString(Arguments));
+            obj.ConstructorValues.Add(new ObjectModelString(Content!));
+            obj.ConstructorValues.Add(new ObjectModelString(Arguments!));
 
             switch (Placement)
             {
@@ -135,7 +129,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                                     obj = new ObjectModelObject("ToastButtonSnooze");
                                     if (!string.IsNullOrWhiteSpace(Content))
                                     {
-                                        obj.ConstructorValues.Add(new ObjectModelString(Content));
+                                        obj.ConstructorValues.Add(new ObjectModelString(Content!));
                                     }
                                     if (InputId != null)
                                     {
@@ -147,7 +141,7 @@ namespace NotificationsVisualizerLibrary.Model.BaseElements
                                     obj = new ObjectModelObject("ToastButtonDismiss");
                                     if (!string.IsNullOrWhiteSpace(Content))
                                     {
-                                        obj.ConstructorValues.Add(new ObjectModelString(Content));
+                                        obj.ConstructorValues.Add(new ObjectModelString(Content!));
                                     }
                                     break;
                             }

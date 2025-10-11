@@ -2,13 +2,9 @@
 
 namespace NotificationsVisualizerLibrary.Model.Enums
 {
-    internal class XmlValueAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field)]
+    internal class XmlValueAttribute(string xmlValue) : Attribute
     {
-        public string XmlValue { get; private set; }
-
-        public XmlValueAttribute(string xmlValue)
-        {
-            XmlValue = xmlValue;
-        }
+        public string XmlValue { get; private set; } = xmlValue;
     }
 }

@@ -5,13 +5,13 @@ using Windows.UI.Xaml.Media;
 
 namespace NotificationsVisualizerLibrary.Converters
 {
-    public sealed class TilePixelSizeToClip : IValueConverter
+    public sealed partial class TilePixelSizeToClip : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is Size s)
             {
-                Size clipSize = new Size(s.Width * 3, s.Height);
+                Size clipSize = new(s.Width * 3, s.Height);
 
                 return new RectangleGeometry()
                 {
@@ -22,9 +22,7 @@ namespace NotificationsVisualizerLibrary.Converters
             return value;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
             throw new NotImplementedException();
-        }
     }
 }

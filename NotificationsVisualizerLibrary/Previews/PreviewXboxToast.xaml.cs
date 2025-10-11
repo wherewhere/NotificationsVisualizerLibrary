@@ -1,8 +1,6 @@
 ﻿using NotificationsVisualizerLibrary.Model;
-using NotificationsVisualizerLibrary.Model.BaseElements;
 using NotificationsVisualizerLibrary.Parsers;
 using NotificationsVisualizerLibrary.Renderers;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Data.Xml.Dom;
@@ -16,8 +14,6 @@ namespace NotificationsVisualizerLibrary
 {
     public sealed partial class PreviewXboxToast : UserControl, IPreviewToast
     {
-        private static readonly XmlTemplateParser _parser = new XmlTemplateParser();
-
         public PreviewXboxToast()
         {
             InitializeComponent();
@@ -25,15 +21,15 @@ namespace NotificationsVisualizerLibrary
             CurrFeatureSet = FeatureSet.Get(DeviceFamily, OSBuildNumber);
         }
 
-        private DataBindingValues _lastDataBindingValues;
+        private DataBindingValues? _lastDataBindingValues;
         public ParseResult Initialize(XmlDocument content, PreviewNotificationData data)
         {
-            ParseResult result = _parser.ParseToast(content.GetXml(), CurrFeatureSet);
+            ParseResult result = XmlTemplateParser.ParseToast(content.GetXml(), CurrFeatureSet);
 
             if (result.IsOkForRender())
             {
-                _lastDataBindingValues = new DataBindingValues(data);
-                result.Toast.ApplyDataBinding(_lastDataBindingValues);
+                _lastDataBindingValues = new DataBindingValues(data!);
+                result.Toast!.ApplyDataBinding(_lastDataBindingValues);
 
                 if (result.IsOkForRender())
                 {
@@ -48,17 +44,16 @@ namespace NotificationsVisualizerLibrary
         //private readonly ActivationType _currActivationType = ActivationType.Foreground;
         //private readonly Dictionary<string, FrameworkElement> _elementsWithIds;
 
-        //private IToast _currContent;
+        private readonly IToast? _currContent = null;
 
         public bool HasContent { get; private set; }
 
         private void ReInitializeContent()
         {
-            IToast _currContent = null;
             InitializeContent(_currContent);
         }
 
-        private void InitializeContent(IToast toastContent)
+        private void InitializeContent(IToast? toastContent)
         {
             HasContent = false;
 
@@ -75,33 +70,33 @@ namespace NotificationsVisualizerLibrary
                 {
                     Visual visual = toastContent.Visual;
 
-                    AdaptiveBinding binding = visual.Bindings.FirstOrDefault();
+                    AdaptiveBinding? binding = visual.Bindings is [AdaptiveBinding value, ..] ? value : null;
 
                     if (binding != null)
                     {
                         HasContent = true;
 
-                        AdaptiveContainer container = binding.Container;
+                        AdaptiveContainer? container = binding.Container;
 
-                        List<AdaptiveTextField> texts = container.Children.OfType<AdaptiveTextField>().ToList();
+                        List<AdaptiveTextField> texts = [.. container!.Children.OfType<AdaptiveTextField>()];
 
-                        AdaptiveTextField titleText = texts.ElementAtOrDefault(0);
+                        AdaptiveTextField? titleText = texts.ElementAtOrDefault(0);
                         if (titleText != null)
                         {
                             TextBlockTitle.Text = titleText.Text;
                         }
 
-                        AdaptiveTextField bodyTextLine1 = texts.ElementAtOrDefault(1);
+                        AdaptiveTextField? bodyTextLine1 = texts.ElementAtOrDefault(1);
                         if (bodyTextLine1 != null)
                         {
                             TextBlockSubtitle.Text = bodyTextLine1.Text;
                             TextBlockSubtitle.Visibility = Visibility.Visible;
                         }
 
-                        AdaptiveImage appLogoOverride = container.Children.OfType<AdaptiveImage>().FirstOrDefault(i => i.Placement == Model.Enums.Placement.AppLogoOverride);
+                        AdaptiveImage? appLogoOverride = container.Children.OfType<AdaptiveImage>().FirstOrDefault(i => i.Placement == Model.Enums.Placement.AppLogoOverride);
                         if (appLogoOverride != null)
                         {
-                            BitmapImage bmp = ImageHelper.GetBitmap(appLogoOverride.Src);
+                            BitmapImage? bmp = ImageHelper.GetBitmap(appLogoOverride.Src);
                             if (appLogoOverride.HintCrop == Model.Enums.HintCrop.Circle)
                             {
                                 CircleImageAppLogoOverride.Source = bmp;
@@ -127,7 +122,7 @@ namespace NotificationsVisualizerLibrary
 
         public PreviewToastProperties Properties
         {
-            get => GetValue(PropertiesProperty) as PreviewToastProperties;
+            get => (GetValue(PropertiesProperty) as PreviewToastProperties)!;
             set => SetValue(PropertiesProperty, value);
         }
 
@@ -151,7 +146,7 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnDeviceFamilyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewXboxToast).OnDeviceFamilyChanged(e);
+            (sender as PreviewXboxToast)!.OnDeviceFamilyChanged(e);
         }
 
         private void OnDeviceFamilyChanged(DependencyPropertyChangedEventArgs e)
@@ -180,13 +175,10 @@ namespace NotificationsVisualizerLibrary
 
         private static void OnOSBuildNumberChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as PreviewXboxToast).OnOSBuildNumberChanged(e);
+            (sender as PreviewXboxToast)!.OnOSBuildNumberChanged(e);
         }
 
-        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e)
-        {
-            UpdateFeatureSet();
-        }
+        private void OnOSBuildNumberChanged(DependencyPropertyChangedEventArgs e) => UpdateFeatureSet();
 
         internal FeatureSet CurrFeatureSet { get; private set; }
 
@@ -197,10 +189,7 @@ namespace NotificationsVisualizerLibrary
             ReInitializeContent();
         }
 
-        public ParseResult Initialize(XmlDocument content)
-        {
-            return Initialize(content, null);
-        }
+        public ParseResult Initialize(XmlDocument content) => Initialize(content, null!);
 
         public void Update(PreviewNotificationData data)
         {

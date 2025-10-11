@@ -5,17 +5,17 @@ namespace NotificationsVisualizerLibrary.Manifest
 {
     public sealed class VisualElements
     {
-        private string _square30X30Logo;
-        private string _square44X44Logo;
+        private string? _square30X30Logo;
+        private string? _square44X44Logo;
 
         [XmlAttribute]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         [XmlAttribute]
-        public string Square150x150Logo { get; set; }
+        public string? Square150x150Logo { get; set; }
 
         [XmlAttribute]
-        public string Square30x30Logo
+        public string? Square30x30Logo
         {
             get => _square30X30Logo;
             set
@@ -26,7 +26,7 @@ namespace NotificationsVisualizerLibrary.Manifest
         }
 
         [XmlAttribute]
-        public string Square44x44Logo
+        public string? Square44x44Logo
         {
             get => _square44X44Logo;
             set
@@ -40,6 +40,6 @@ namespace NotificationsVisualizerLibrary.Manifest
         public Color BackgroundColor { get; set; } = Colors.Blue;
 
         [XmlElement(Namespace = "http://schemas.microsoft.com/appx/2014/manifest")]
-        public DefaultTile DefaultTile { get; set; }
+        public DefaultTile? DefaultTile { get; set; }
     }
 }

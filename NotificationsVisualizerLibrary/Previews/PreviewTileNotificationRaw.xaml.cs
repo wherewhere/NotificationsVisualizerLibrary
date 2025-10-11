@@ -5,6 +5,7 @@ using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Renderers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -22,7 +23,7 @@ namespace NotificationsVisualizerLibrary
 
         public PreviewTileNotificationRaw() => InitializeComponent();
 
-        private AdaptiveBinding _binding;
+        private AdaptiveBinding? _binding;
         private TileSize _tileSize;
 
         /// <summary>
@@ -32,9 +33,10 @@ namespace NotificationsVisualizerLibrary
         /// <param name="visualElements"></param>
         /// <param name="isBrandingVisible"></param>
         /// <param name="binding"></param>
+        [MemberNotNull(nameof(_binding))]
         public void InitializeFromXml(TileSize tileSize, PreviewTileVisualElements visualElements, bool isBrandingVisible, AdaptiveBinding binding)
         {
-            _binding = binding ?? throw new ArgumentNullException("binding");
+            _binding = binding ?? throw new ArgumentNullException(nameof(binding));
             _tileSize = tileSize;
 
             // Set the background color
@@ -47,20 +49,15 @@ namespace NotificationsVisualizerLibrary
                 AdaptiveContainer container = binding.Container;
 
                 // Calculate the tile margin
-                Thickness margin = new Thickness(GetExternalMargin());
+                Thickness margin = new(GetExternalMargin());
 
                 if (isBrandingVisible)
                 {
-                    switch (tileSize)
+                    margin.Bottom = tileSize switch
                     {
-                        case TileSize.Small:
-                            margin.Bottom = BRANDING_HEIGHT - 4;
-                            break;
-
-                        default:
-                            margin.Bottom = BRANDING_HEIGHT;
-                            break;
-                    }
+                        TileSize.Small => BRANDING_HEIGHT - 4,
+                        _ => BRANDING_HEIGHT,
+                    };
                 }
 
                 // Render the adaptive
@@ -68,8 +65,8 @@ namespace NotificationsVisualizerLibrary
 
                 // Background image
                 IEnumerable<AdaptiveImage> allImages = container.GetAllDescendants().OfType<AdaptiveImage>();
-                AdaptiveImage backgroundImage = allImages.FirstOrDefault(i => i.Placement == Placement.Background);
-                AdaptiveImage peekImage = allImages.FirstOrDefault(i => i.Placement == Placement.Peek);
+                AdaptiveImage? backgroundImage = allImages.FirstOrDefault(i => i.Placement == Placement.Background);
+                AdaptiveImage? peekImage = allImages.FirstOrDefault(i => i.Placement == Placement.Peek);
 
                 // If we don't support both peek and background, then just peek is used
                 if (!binding.SupportedFeatures.BackgroundAndPeekImage && backgroundImage != null && peekImage != null)
@@ -122,7 +119,6 @@ namespace NotificationsVisualizerLibrary
                         : 0;
                 }
 
-
                 if (backgroundImage != null)
                 {
                     switch (backgroundImage.HintCrop)
@@ -152,21 +148,17 @@ namespace NotificationsVisualizerLibrary
                 {
                     UsingPeek = true;
 
-                    switch (peekImage.HintCrop)
+                    PeekImageContainer.Child = peekImage.HintCrop switch
                     {
-                        case HintCrop.Circle:
-                            PeekImageContainer.Child = new CircleImage()
-                            {
-                                Source = ImageHelper.GetBitmap(peekImage.Src),
-                                Margin = tileSize == TileSize.Small ? new Thickness(4) : new Thickness(8),
-                                OverlayOpacity = peekOverlay / 100.0
-                            };
-                            break;
-
-                        default:
-                            PeekImageContainer.Child = new Grid()
-                            {
-                                Children =
+                        HintCrop.Circle => new CircleImage()
+                        {
+                            Source = ImageHelper.GetBitmap(peekImage.Src),
+                            Margin = tileSize == TileSize.Small ? new Thickness(4) : new Thickness(8),
+                            OverlayOpacity = peekOverlay / 100.0
+                        },
+                        _ => new Grid()
+                        {
+                            Children =
                                 {
                                     new Image()
                                     {
@@ -181,10 +173,8 @@ namespace NotificationsVisualizerLibrary
                                         Opacity = peekOverlay / 100.0
                                     }
                                 }
-                            };
-                            break;
-                    }
-
+                        },
+                    };
                     PeekRow.Height = new GridLength(1, GridUnitType.Star);
                 }
             }
@@ -192,16 +182,10 @@ namespace NotificationsVisualizerLibrary
 
         public bool UsingPeek { get; private set; }
 
-        private double GetExternalMargin()
+        private double GetExternalMargin() => _tileSize switch
         {
-            switch (_tileSize)
-            {
-                case TileSize.Small:
-                    return AdaptiveConstants.SmallExternalMargin;
-
-                default:
-                    return AdaptiveConstants.DefaultExternalMargin;
-            }
-        }
+            TileSize.Small => AdaptiveConstants.SmallExternalMargin,
+            _ => AdaptiveConstants.DefaultExternalMargin,
+        };
     }
 }

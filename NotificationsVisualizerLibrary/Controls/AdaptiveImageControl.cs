@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    public sealed class AdaptiveImageControl : Control, IAdaptiveControl
+    public sealed partial class AdaptiveImageControl : Control, IAdaptiveControl
     {
         public bool DoesAllContentFit { get; private set; }
 
@@ -19,7 +19,7 @@ namespace NotificationsVisualizerLibrary.Controls
                 typeof(AdaptiveImageControl),
                 new PropertyMetadata(default(BitmapImage), OnSourcePropertyChanged));
 
-        public BitmapImage Source
+        public BitmapImage? Source
         {
             get => GetValue(SourceProperty) as BitmapImage;
             set => SetValue(SourceProperty, value);
@@ -27,7 +27,7 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnSourcePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as AdaptiveImageControl).OnSourcePropertyChanged(e);
+            (sender as AdaptiveImageControl)!.OnSourcePropertyChanged(e);
         }
 
         private void OnSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -45,10 +45,7 @@ namespace NotificationsVisualizerLibrary.Controls
             InvalidateMeasure();
         }
 
-        private void Bitmap_ImageOpened(object sender, RoutedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void Bitmap_ImageOpened(object sender, RoutedEventArgs e) => InvalidateMeasure();
 
         protected override Size MeasureOverride(Size availableSize)
         {
@@ -130,19 +127,15 @@ namespace NotificationsVisualizerLibrary.Controls
             }
         }
 
-        private Size FitToHeight(double height)
-        {
-            return Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
+        private Size FitToHeight(double height) =>
+            Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
                 ? new Size()
                 : new Size(Math.Ceiling(height * (Source.PixelWidth / (double)Source.PixelHeight)), height);
-        }
 
-        private Size FitToWidth(double width)
-        {
-            return Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
+        private Size FitToWidth(double width) =>
+            Source == null || Source.PixelHeight == 0 || Source.PixelWidth == 0
                 ? new Size()
                 : new Size(width, Math.Ceiling(width * (Source.PixelHeight / (double)Source.PixelWidth)));
-        }
 
         //private Size CalculateDesiredSize(Size availableSize)
         //{
@@ -205,13 +198,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnStretchPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as AdaptiveImageControl).OnStretchPropertyChanged(e);
+            (sender as AdaptiveImageControl)!.OnStretchPropertyChanged(e);
         }
 
-        private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void OnStretchPropertyChanged(DependencyPropertyChangedEventArgs e) => InvalidateMeasure();
 
         public AdaptiveImageStretch Stretch
         {

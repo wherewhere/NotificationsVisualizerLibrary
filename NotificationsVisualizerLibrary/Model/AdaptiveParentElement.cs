@@ -3,18 +3,13 @@ using System.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
-    internal abstract class AdaptiveParentElement : AdaptiveChildElement
+    internal abstract class AdaptiveParentElement(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures)
     {
-        public AdaptiveParentElement(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         /// <summary>
         /// Returns true if this element or any descendants use data binding
         /// </summary>
         /// <returns></returns>
-        public bool AnyUseDataBinding()
-        {
-            return UsesDataBinding || GetAllDescendants().Any(i => i.UsesDataBinding);
-        }
+        public bool AnyUseDataBinding() => UsesDataBinding || GetAllDescendants().Any(i => i.UsesDataBinding);
 
         internal abstract IEnumerable<AdaptiveChildElement> GetAllChildren();
 
@@ -24,9 +19,9 @@ namespace NotificationsVisualizerLibrary.Model
             {
                 yield return child;
 
-                if (child is AdaptiveParentElement)
+                if (child is AdaptiveParentElement element)
                 {
-                    foreach (AdaptiveChildElement descendant in (child as AdaptiveParentElement).GetAllDescendants())
+                    foreach (AdaptiveChildElement descendant in element.GetAllDescendants())
                     {
                         yield return descendant;
                     }

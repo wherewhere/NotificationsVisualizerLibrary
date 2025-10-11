@@ -4,7 +4,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    public sealed class AdaptiveGrid : Grid, IAdaptiveControl
+    public sealed partial class AdaptiveGrid : Grid, IAdaptiveControl
     {
         public bool DoesAllContentFit { get; private set; }
 

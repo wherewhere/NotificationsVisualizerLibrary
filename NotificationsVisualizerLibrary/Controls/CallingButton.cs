@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Media;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    internal class CallingButton : Button
+    internal partial class CallingButton : Button
     {
         private readonly Grid _grid;
         private readonly TextBlock _textBlock;
@@ -51,12 +51,12 @@ namespace NotificationsVisualizerLibrary.Controls
             Content = _grid;
         }
 
-        public string Text
+        public string? Text
         {
             set => _textBlock.Text = value;
         }
 
-        public string ImageUri
+        public string? ImageUri
         {
             set => _image.Source = ImageHelper.GetBitmap(value);
         }

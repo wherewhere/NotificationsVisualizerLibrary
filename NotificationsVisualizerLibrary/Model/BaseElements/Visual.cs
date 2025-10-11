@@ -9,10 +9,8 @@ namespace NotificationsVisualizerLibrary.Model
 {
     [ObjectModelClass("ToastVisual", NotificationType.Toast)]
     [ObjectModelClass("TileVisual", NotificationType.Tile)]
-    internal class Visual : AdaptiveParentElement
+    internal partial class Visual(NotificationType context, FeatureSet supportedFeatures) : AdaptiveParentElement(context, supportedFeatures)
     {
-        public Visual(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         private const string ATTR_VISUAL_VERSION = "version";
         private const string ATTR_VISUAL_LANG = "lang";
         private const string ATTR_VISUAL_BASEURI = "baseUri";
@@ -30,76 +28,73 @@ namespace NotificationsVisualizerLibrary.Model
         public Branding? Branding { get; set; } = null;
 
         [ObjectModelProperty("DisplayName", null, NotificationType.Tile)]
-        public string DisplayName { get; set; } = null;
+        public string? DisplayName { get; set; } = null;
 
         [ObjectModelProperty("Arguments", null, NotificationType.Tile)]
-        public string Arguments { get; set; } = null;
+        public string? Arguments { get; set; } = null;
 
         [ObjectModelProperty("Language")]
-        public string Language { get; set; }
+        public string? Language { get; set; }
 
         [ObjectModelProperty("BaseUri")]
-        public Uri BaseUri { get; set; }
+        public Uri? BaseUri { get; set; }
 
         [ObjectModelProperty("AddImageQuery")]
         public bool? AddImageQuery { get; set; }
 
-        private readonly List<AdaptiveBinding> _bindings = new List<AdaptiveBinding>();
+        private readonly List<AdaptiveBinding> _bindings = [];
         public IReadOnlyList<AdaptiveBinding> Bindings => _bindings;
 
         [ObjectModelProperty("BindingGeneric", null, NotificationType.Toast)]
-        public AdaptiveBinding ToastBindingGeneric => GetBinding(Template.ToastGeneric);
+        public AdaptiveBinding? ToastBindingGeneric => GetBinding(Template.ToastGeneric);
 
         [ObjectModelProperty("TileSmall", null, NotificationType.Tile)]
-        public AdaptiveBinding TileSmall => GetBinding(Template.TileSmall);
+        public AdaptiveBinding? TileSmall => GetBinding(Template.TileSmall);
 
         [ObjectModelProperty("TileMedium", null, NotificationType.Tile)]
-        public AdaptiveBinding TileMedium => GetBinding(Template.TileMedium);
+        public AdaptiveBinding? TileMedium => GetBinding(Template.TileMedium);
 
         [ObjectModelProperty("TileWide", null, NotificationType.Tile)]
-        public AdaptiveBinding TileWide => GetBinding(Template.TileWide);
+        public AdaptiveBinding? TileWide => GetBinding(Template.TileWide);
 
         [ObjectModelProperty("TileLarge", null, NotificationType.Tile)]
-        public AdaptiveBinding TileLarge => GetBinding(Template.TileLarge);
+        public AdaptiveBinding? TileLarge => GetBinding(Template.TileLarge);
 
-        private AdaptiveBinding GetBinding(Template template)
-        {
-            return Bindings.FirstOrDefault(i => i.Template == template);
-        }
+        private AdaptiveBinding? GetBinding(Template template) => Bindings.FirstOrDefault(i => i.Template == template);
 
         [ObjectModelProperty("LockDetailedStatus1", null, NotificationType.Tile)]
-        public string LockDetailedStatus1
+        public string? LockDetailedStatus1
         {
             get
             {
-                AdaptiveBinding wide = TileWide;
+                AdaptiveBinding? wide = TileWide;
                 return wide != null && wide.HintLockDetailedStatus1 != null
                     ? wide.HintLockDetailedStatus1
-                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => object.Equals(i.Id, "1"))?.Text);
+                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => Equals(i.Id, "1"))?.Text);
             }
         }
 
         [ObjectModelProperty("LockDetailedStatus2", null, NotificationType.Tile)]
-        public string LockDetailedStatus2
+        public string? LockDetailedStatus2
         {
             get
             {
-                AdaptiveBinding wide = TileWide;
+                AdaptiveBinding? wide = TileWide;
                 return wide != null && wide.HintLockDetailedStatus2 != null
                     ? wide.HintLockDetailedStatus2
-                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => object.Equals(i.Id, "2"))?.Text);
+                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => Equals(i.Id, "2"))?.Text);
             }
         }
 
         [ObjectModelProperty("LockDetailedStatus3", null, NotificationType.Tile)]
-        public string LockDetailedStatus3
+        public string? LockDetailedStatus3
         {
             get
             {
-                AdaptiveBinding wide = TileWide;
+                AdaptiveBinding? wide = TileWide;
                 return wide != null && wide.HintLockDetailedStatus3 != null
                     ? wide.HintLockDetailedStatus3
-                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => object.Equals(i.Id, "3"))?.Text);
+                    : (wide?.GetAllChildren().OfType<AdaptiveTextField>().FirstOrDefault(i => Equals(i.Id, "3"))?.Text);
             }
         }
 
@@ -109,11 +104,7 @@ namespace NotificationsVisualizerLibrary.Model
             element.Parent = this;
         }
 
-
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { ATTR_VISUAL_LANG, ATTR_VISUAL_CONTENTID };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[ATTR_VISUAL_LANG, ATTR_VISUAL_CONTENTID];
 
         internal void Parse(ParseResult result, XElement node)
         {
@@ -122,16 +113,16 @@ namespace NotificationsVisualizerLibrary.Model
                 throw new IncompleteElementException();
             }
 
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             // BaseUri is optional
-            string baseUri = null;
+            string? baseUri = null;
             {
-                XAttribute attrBaseUri = attributes.PopAttribute(ATTR_VISUAL_BASEURI);
+                XAttribute? attrBaseUri = attributes.PopAttribute(ATTR_VISUAL_BASEURI);
                 if (attrBaseUri != null)
                 {
                     baseUri = attrBaseUri.Value;
-                    if (Uri.TryCreate(baseUri, UriKind.RelativeOrAbsolute, out Uri uri))
+                    if (Uri.TryCreate(baseUri, UriKind.RelativeOrAbsolute, out Uri? uri))
                     {
                         BaseUri = uri;
                     }
@@ -152,7 +143,7 @@ namespace NotificationsVisualizerLibrary.Model
             {
                 if (SupportedFeatures.ChaseableTiles)
                 {
-                    XAttribute attrArguments = attributes.PopAttribute(ATTR_VISUAL_ARGUMENTS);
+                    XAttribute? attrArguments = attributes.PopAttribute(ATTR_VISUAL_ARGUMENTS);
                     if (attrArguments != null)
                     {
                         Arguments = attrArguments.Value;
@@ -175,7 +166,7 @@ namespace NotificationsVisualizerLibrary.Model
             }
         }
 
-        internal virtual void ParseKnownAttributes(AttributesHelper attributes, ParseResult result, string baseUri, bool addImageQuery)
+        internal virtual void ParseKnownAttributes(AttributesHelper attributes, ParseResult result, string? baseUri, bool addImageQuery)
         {
             // version is optional
             if (TryParse(result, attributes, ATTR_VISUAL_VERSION, out int version))
@@ -192,7 +183,7 @@ namespace NotificationsVisualizerLibrary.Model
                 }
 
                 // DisplayName is optional
-                XAttribute attrDisplayName = attributes.PopAttribute(ATTR_VISUAL_DISPLAY_NAME, false); // not case-sensitive
+                XAttribute? attrDisplayName = attributes.PopAttribute(ATTR_VISUAL_DISPLAY_NAME, false); // not case-sensitive
                 if (attrDisplayName != null)
                 {
                     DisplayName = attrDisplayName.Value;
@@ -201,11 +192,11 @@ namespace NotificationsVisualizerLibrary.Model
         }
 
 
-        protected void HandleChild(ParseResult result, XElement child, string baseUri, bool addImageQuery)
+        protected void HandleChild(ParseResult result, XElement child, string? baseUri, bool addImageQuery)
         {
             if (child.IsType("binding"))
             {
-                AdaptiveBinding binding = new AdaptiveBinding(Context, SupportedFeatures);
+                AdaptiveBinding binding = new(Context, SupportedFeatures);
                 binding.Parse(result, child, baseUri, addImageQuery);
 
                 if (!result.IsOkForRender())

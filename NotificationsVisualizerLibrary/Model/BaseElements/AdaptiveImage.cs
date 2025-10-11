@@ -1,16 +1,13 @@
 ﻿using NotificationsVisualizerLibrary.Model.Enums;
 using NotificationsVisualizerLibrary.Parsers;
-using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
     [ObjectModelClass("AdaptiveImage")]
-    internal class AdaptiveImage : AdaptiveChildElement, IBindingChild
+    internal partial class AdaptiveImage(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures), IBindingChild
     {
-        public AdaptiveImage(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         private const string ATTR_IMAGE_SRC = "src";
         private const string ATTR_IMAGE_ALT = "alt";
         private const string ATTR_IMAGE_ADDIMAGEQUERY = "addImageQuery";
@@ -20,10 +17,10 @@ namespace NotificationsVisualizerLibrary.Model
         private const string ATTR_IMAGE_HINT_ALIGN = "hint-align";
         private const string ATTR_HINT_OVERLAY = "hint-overlay";
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [ObjectModelProperty("AlternateText")]
-        public string AlternateText { get; set; }
+        public string? AlternateText { get; set; }
 
         [ObjectModelProperty("AddImageQuery")]
         public bool? AddImageQuery { get; set; }
@@ -39,39 +36,28 @@ namespace NotificationsVisualizerLibrary.Model
 
         public Placement Placement { get; set; } = Placement.Inline;
 
-        private double? _hintOverlay = null;
         public double? HintOverlay
         {
-            get => _hintOverlay;
-            set
-            {
-                if (value != null)
-                {
-                    _hintOverlay = value.Value < 0 ? (double?)0 : value.Value > 100 ? (double?)100 : value;
-                }
-                else
-                {
-                    _hintOverlay = value;
-                }
-            }
-        }
+            get;
+            set => field = value != null ? value.Value < 0 ? 0 : value.Value > 100 ? 100 : value : value;
+        } = null;
 
         /// <summary>
         /// Required
         /// </summary>
         [ObjectModelProperty("Source")]
-        public string Src { get; set; }
+        public string? Src { get; set; }
 
-        internal void Parse(ParseResult result, XElement node, string baseUri, bool addImageQuery)
+        internal void Parse(ParseResult result, XElement node, string? baseUri, bool addImageQuery)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result, baseUri, addImageQuery);
 
             HandleRemainingAttributes(attributes, result);
         }
 
-        internal void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string baseUri, bool addImageQuery)
+        internal void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result, string? baseUri, bool addImageQuery)
         {
             // AddImageQuery is optional
             {
@@ -83,7 +69,7 @@ namespace NotificationsVisualizerLibrary.Model
             }
 
             // src is required
-            XAttribute attrSrc = attributes.PopAttribute(ATTR_IMAGE_SRC);
+            XAttribute? attrSrc = attributes.PopAttribute(ATTR_IMAGE_SRC);
             if (attrSrc == null)
             {
                 result.AddError("src attribute on image element is required.", XmlTemplateParser.GetErrorPositionInfo(node));
@@ -93,7 +79,7 @@ namespace NotificationsVisualizerLibrary.Model
             Src = XmlTemplateParser.ConstructUri(attrSrc.Value, baseUri, addImageQuery);
 
             // alt is optional, I don't use it right now
-            XAttribute altAttr = attributes.PopAttribute(ATTR_IMAGE_ALT);
+            XAttribute? altAttr = attributes.PopAttribute(ATTR_IMAGE_ALT);
             if (altAttr != null)
             {
                 AlternateText = altAttr.Value;
@@ -180,7 +166,7 @@ namespace NotificationsVisualizerLibrary.Model
             }
         }
 
-        protected override Array GetSupportedEnums<TEnum>()
+        protected override TEnum[] GetSupportedEnums<TEnum>()
         {
             if (typeof(TEnum) == typeof(Placement))
             {
@@ -190,68 +176,53 @@ namespace NotificationsVisualizerLibrary.Model
 
                         if (SupportedFeatures.RS1_Style_Toasts)
                         {
-                            return new Placement[] { Placement.Inline, Placement.AppLogoOverride, Placement.Hero };
+                            return (new Placement[] { Placement.Inline, Placement.AppLogoOverride, Placement.Hero } as TEnum[])!;
                         }
 
-                        return new Placement[] { Placement.Inline, Placement.AppLogoOverride };
+                        return (new Placement[] { Placement.Inline, Placement.AppLogoOverride } as TEnum[])!;
 
                     case NotificationType.Tile:
-                        return new Placement[] { Placement.Inline, Placement.Background, Placement.Peek };
+                        return (new Placement[] { Placement.Inline, Placement.Background, Placement.Peek } as TEnum[])!;
                 }
             }
 
             return base.GetSupportedEnums<TEnum>();
         }
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[] { };
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        public override ObjectModelObject ConvertToObject()
+        public override ObjectModelObject? ConvertToObject() => Placement switch
         {
-            switch (Placement)
+            Placement.Hero => new ObjectModelObject("ToastGenericHeroImage")
             {
-                case Placement.Hero:
-                    return new ObjectModelObject("ToastGenericHeroImage")
-                    {
-                        { "Source", Src },
-                        { "AlternateText", AlternateText },
-                        { "AddImageQuery", AddImageQuery }
-                    };
-
-                case Placement.AppLogoOverride:
-                    return new ObjectModelObject("ToastGenericAppLogo")
-                    {
-                        { "Source", Src },
-                        { "AlternateText", AlternateText },
-                        { "AddImageQuery", AddImageQuery },
-                        { "HintCrop", HintCrop != HintCrop.Default ? new ObjectModelEnum("ToastGenericAppLogoCrop", HintCrop.ToString()) : null }
-                    };
-
-                case Placement.Peek:
-                    return new ObjectModelObject("TilePeekImage")
-                    {
-                        { "Source", Src },
-                        { "AlternateText", AlternateText },
-                        { "AddImageQuery", AddImageQuery },
-                        { "HintOverlay", HintOverlay },
-                        { "HintCrop", HintCrop != HintCrop.Default ? new ObjectModelEnum("TilePeekImageCrop", HintCrop.ToString()) : null }
-                    };
-
-                case Placement.Background:
-                    return new ObjectModelObject("TileBackgroundImage")
-                    {
-                        { "Source", Src },
-                        { "AlternateText", AlternateText },
-                        { "AddImageQuery", AddImageQuery },
-                        { "HintOverlay", HintOverlay },
-                        { "HintCrop", HintCrop != HintCrop.Default ? new ObjectModelEnum("TileBackgroundImageCrop", HintCrop.ToString()) : null }
-                    };
-
-                default:
-                    return base.ConvertToObject();
-            }
-        }
+                { "Source", Src },
+                { nameof(AlternateText), AlternateText },
+                { nameof(AddImageQuery), AddImageQuery }
+            },
+            Placement.AppLogoOverride => new ObjectModelObject("ToastGenericAppLogo")
+            {
+                { "Source", Src },
+                { nameof(AlternateText), AlternateText },
+                { nameof(AddImageQuery), AddImageQuery },
+                { nameof(HintCrop), HintCrop != HintCrop.Default ? new ObjectModelEnum("ToastGenericAppLogoCrop", HintCrop.ToString()) : null }
+            },
+            Placement.Peek => new ObjectModelObject("TilePeekImage")
+            {
+                { "Source", Src },
+                { nameof(AlternateText), AlternateText },
+                { nameof(AddImageQuery), AddImageQuery },
+                { nameof(HintOverlay), HintOverlay },
+                { nameof(HintCrop), HintCrop != HintCrop.Default ? new ObjectModelEnum("TilePeekImageCrop", HintCrop.ToString()) : null }
+            },
+            Placement.Background => new ObjectModelObject("TileBackgroundImage")
+            {
+                { "Source", Src },
+                { nameof(AlternateText), AlternateText },
+                { nameof(AddImageQuery), AddImageQuery },
+                { nameof(HintOverlay), HintOverlay },
+                { nameof(HintCrop), HintCrop != HintCrop.Default ? new ObjectModelEnum("TileBackgroundImageCrop", HintCrop.ToString()) : null }
+            },
+            _ => base.ConvertToObject(),
+        };
     }
 }

@@ -16,7 +16,7 @@ namespace NotificationsVisualizerLibrary
 
         public PreviewNotificationData()
         {
-            Values = new KeyValuePair<string, string>[0];
+            Values = (KeyValuePair<string, string>[])[];
             Version = 0;
         }
     }

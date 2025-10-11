@@ -20,21 +20,18 @@ namespace NotificationsVisualizerLibrary
         /// <param name="binding"></param>
         public void InitializeFromXml(TileSize tileSize, PreviewTileVisualElements visualElements, bool isBrandingVisible, AdaptiveBinding binding)
         {
-            if (binding == null)
-            {
-                throw new ArgumentNullException("binding");
-            }
+            ArgumentNullException.ThrowIfNull(binding);
 
-            PreviewTileNotificationRaw raw = new PreviewTileNotificationRaw();
+            PreviewTileNotificationRaw raw = new();
             raw.InitializeFromXml(tileSize, visualElements, isBrandingVisible, binding);
 
             Content = raw.UsingPeek
-                ? new PeekDisplayerControl()
+                ? new PeekDisplayerControl
                 {
                     PreviewTileNotificationRaw = raw,
                     PeekStartsOn = PeekContentDisplayed.Content
                 }
-                : (Windows.UI.Xaml.UIElement)raw;
+                : raw;
         }
     }
 }

@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace NotificationsVisualizerLibrary.Controls
 {
-    internal class EqualColumnsPanel : Panel
+    internal partial class EqualColumnsPanel : Panel
     {
         private static readonly DependencyProperty ColumnSpacingProperty =
             DependencyProperty.Register(
@@ -23,13 +23,10 @@ namespace NotificationsVisualizerLibrary.Controls
 
         private static void OnDisplayPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as EqualColumnsPanel).OnDisplayPropertyChanged(e);
+            (sender as EqualColumnsPanel)!.OnDisplayPropertyChanged(e);
         }
 
-        private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateMeasure();
-        }
+        private void OnDisplayPropertyChanged(DependencyPropertyChangedEventArgs e) => InvalidateMeasure();
 
         protected override Size MeasureOverride(Size availableSize)
         {
@@ -38,7 +35,7 @@ namespace NotificationsVisualizerLibrary.Controls
             double[] columnWidths = GetColumnWidths(availableSize);
 
             int i = 0;
-            foreach (UIElement child in Children.Where(x => CountsForDisplay(x)))
+            foreach (UIElement child in Children.Where(CountsForDisplay))
             {
                 child.Measure(new Size(columnWidths[i], availableSize.Height));
 
@@ -56,9 +53,9 @@ namespace NotificationsVisualizerLibrary.Controls
 
             int i = 0;
             double posX = 0;
-            foreach (UIElement child in Children.Where(x => CountsForDisplay(x)))
+            foreach (UIElement child in Children.Where(CountsForDisplay))
             {
-                Size childFinalSize = new Size(columnWidths[i], finalSize.Height);
+                Size childFinalSize = new(columnWidths[i], finalSize.Height);
 
                 child.Arrange(new Rect(
                     new Point(posX, 0),
@@ -71,15 +68,9 @@ namespace NotificationsVisualizerLibrary.Controls
             return finalSize;
         }
 
-        private static bool CountsForDisplay(UIElement el)
-        {
-            return el.Visibility == Visibility.Visible;
-        }
+        private static bool CountsForDisplay(UIElement el) => el.Visibility == Visibility.Visible;
 
-        private int GetNumberOfColumns()
-        {
-            return Children.Count(i => CountsForDisplay(i));
-        }
+        private int GetNumberOfColumns() => Children.Count(CountsForDisplay);
 
         private double[] GetColumnWidths(Size totalSize)
         {
@@ -87,12 +78,12 @@ namespace NotificationsVisualizerLibrary.Controls
 
             if (numOfCols <= 0)
             {
-                return new double[0];
+                return [];
             }
 
             if (numOfCols == 1)
             {
-                return new double[] { totalSize.Width };
+                return [totalSize.Width];
             }
 
             double[] colWidths = new double[numOfCols];

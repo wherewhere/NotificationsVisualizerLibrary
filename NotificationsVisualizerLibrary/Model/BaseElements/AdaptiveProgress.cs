@@ -6,44 +6,38 @@ using System.Xml.Linq;
 namespace NotificationsVisualizerLibrary.Model
 {
     [ObjectModelClass("AdaptiveProgressBar")]
-    internal class AdaptiveProgress : AdaptiveChildElement, IBindingChild
+    internal partial class AdaptiveProgress(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures), IBindingChild
     {
-        public AdaptiveProgress(NotificationType context, FeatureSet supportedFeatures) : base(context, supportedFeatures) { }
-
         private const string ATTR_TITLE = "title";
         private const string ATTR_VALUE_STRING_OVERRIDE = "valueStringOverride";
         private const string ATTR_VALUE = "value";
         private const string ATTR_STATUS = "status";
 
-        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer()
-        {
-            return new string[0];
-        }
+        protected override IEnumerable<string> GetAttributesNotSupportedByVisualizer() => (string[])[];
 
-        private string _title;
         /// <summary>
         /// Optional
         /// </summary>
-        public string Title
+        public string? Title
         {
-            get => _title;
-            set => SetProperty(ref _title, value);
+            get;
+            set => SetProperty(ref field, value);
         }
 
-        [ObjectModelBindingProperty("Value", "BindableProgressBarValue")]
-        public string BindingValue { get; set; }
+        [ObjectModelBindingProperty(nameof(Value), "BindableProgressBarValue")]
+        public string? BindingValue { get; set; }
 
-        [ObjectModelBindingProperty("ValueStringOverride", "BindableString")]
-        public string BindingValueStringOverride { get; set; }
+        [ObjectModelBindingProperty(nameof(ValueStringOverride), "BindableString")]
+        public string? BindingValueStringOverride { get; set; }
 
-        [ObjectModelBindingProperty("Title", "BindableString")]
-        public string BindingTitle { get; set; }
+        [ObjectModelBindingProperty(nameof(Title), "BindableString")]
+        public string? BindingTitle { get; set; }
 
-        [ObjectModelBindingProperty("Status", "BindableString")]
-        public string BindingStatus { get; set; }
+        [ObjectModelBindingProperty(nameof(Status), "BindableString")]
+        public string? BindingStatus { get; set; }
 
         [ObjectModelProperty("Value", null)]
-        public IObjectModelValue PropertyValue
+        public IObjectModelValue? PropertyValue
         {
             get
             {
@@ -55,61 +49,54 @@ namespace NotificationsVisualizerLibrary.Model
 
                 return IsIndeterminate
                     ? new ObjectModelEnum("AdaptiveProgressBarValue", "Intermediate")
-                    : (IObjectModelValue)new ObjectModelObjectFromStaticMethod("AdaptiveProgressBarValue", "FromValue", new ObjectModelDouble(Value));
+                    : new ObjectModelObjectFromStaticMethod("AdaptiveProgressBarValue", "FromValue", new ObjectModelDouble(Value));
             }
         }
 
         [ObjectModelProperty("ValueStringOverride", null)]
-        public IObjectModelValue PropertyValueStringOverride =>
-            BindingValueStringOverride != null
-                    ? null
-                    : ValueStringOverride == null ? null : (IObjectModelValue)new ObjectModelString(ValueStringOverride);
+        public IObjectModelValue? PropertyValueStringOverride => BindingValueStringOverride != null ? null : ValueStringOverride == null ? null : new ObjectModelString(ValueStringOverride);
 
         [ObjectModelProperty("Title", null)]
-        public IObjectModelValue PropertyTitle => BindingTitle != null ? null : Title == null ? null : (IObjectModelValue)new ObjectModelString(Title);
+        public IObjectModelValue? PropertyTitle => BindingTitle != null ? null : Title == null ? null : new ObjectModelString(Title);
 
         [ObjectModelProperty("Status", null)]
-        public IObjectModelValue PropertyStatus => BindingStatus != null ? null : Status == null ? null : (IObjectModelValue)new ObjectModelString(Status);
+        public IObjectModelValue? PropertyStatus => BindingStatus != null ? null : Status == null ? null : new ObjectModelString(Status);
 
-        private double _value;
         /// <summary>
         /// Required, value between 0.0 and 1.0
         /// </summary>
         public double Value
         {
-            get => _value;
-            set { SetProperty(ref _value, value); NotifyPropertyChanged(nameof(ValueString)); }
+            get;
+            set { SetProperty(ref field, value); NotifyPropertyChanged(nameof(ValueString)); }
         }
 
         public string ValueString => ValueStringOverride ?? Value.ToString("0%");
 
-        private bool _isIndeterminate;
         public bool IsIndeterminate
         {
-            get => _isIndeterminate;
-            set => SetProperty(ref _isIndeterminate, value);
+            get;
+            set => SetProperty(ref field, value);
         }
 
-        private string _valueStringOverride;
-        public string ValueStringOverride
+        public string? ValueStringOverride
         {
-            get => _valueStringOverride;
-            set { SetProperty(ref _valueStringOverride, value); NotifyPropertyChanged(nameof(ValueString)); }
+            get;
+            set { SetProperty(ref field, value); NotifyPropertyChanged(nameof(ValueString)); }
         }
 
-        private string _status;
         /// <summary>
         /// Optional
         /// </summary>
-        public string Status
+        public string? Status
         {
-            get => _status;
-            set => SetProperty(ref _status, value);
+            get;
+            set => SetProperty(ref field, value);
         }
 
         internal void Parse(ParseResult result, XElement node)
         {
-            AttributesHelper attributes = new AttributesHelper(node.Attributes());
+            AttributesHelper attributes = new(node.Attributes());
 
             ParseKnownAttributes(node, attributes, result);
 
@@ -119,21 +106,21 @@ namespace NotificationsVisualizerLibrary.Model
         internal void ParseKnownAttributes(XElement node, AttributesHelper attributes, ParseResult result)
         {
             // title is optional
-            TryPopAttributeValueWithBinding(result, attributes, ATTR_TITLE, out string bindingTitle, (val) =>
+            TryPopAttributeValueWithBinding(result, attributes, ATTR_TITLE, out string? bindingTitle, (val) =>
             {
                 Title = val;
             });
             BindingTitle = bindingTitle;
 
             // valueStringOverride is optional
-            TryPopAttributeValueWithBinding(result, attributes, ATTR_VALUE_STRING_OVERRIDE, out string bindingValueStringOverride, (val) =>
+            TryPopAttributeValueWithBinding(result, attributes, ATTR_VALUE_STRING_OVERRIDE, out string? bindingValueStringOverride, val =>
             {
                 ValueStringOverride = val;
             });
             BindingValueStringOverride = bindingValueStringOverride;
 
             // value is required
-            bool hadValue = TryPopAttributeValueWithBinding(result, attributes, ATTR_VALUE, out string bindingValue, (val) =>
+            bool hadValue = TryPopAttributeValueWithBinding(result, attributes, ATTR_VALUE, out string? bindingValue, val =>
             {
                 if (val == null)
                 {
@@ -151,7 +138,7 @@ namespace NotificationsVisualizerLibrary.Model
                 }
                 else
                 {
-                    if (value < 0 || value > 1)
+                    if (value is < 0 or > 1)
                     {
                         IsIndeterminate = false;
                         Value = (value < 0) ? 0 : 1;
@@ -171,7 +158,7 @@ namespace NotificationsVisualizerLibrary.Model
             BindingValue = bindingValue;
 
             // status is optional
-            TryPopAttributeValueWithBinding(result, attributes, ATTR_STATUS, out string bindingStatus, (val) =>
+            TryPopAttributeValueWithBinding(result, attributes, ATTR_STATUS, out string? bindingStatus, val =>
             {
                 Status = val;
             });
