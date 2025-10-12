@@ -1,14 +1,17 @@
-﻿using NotificationsExtensions;
-using NotificationsExtensions.Tiles;
-using NotificationsVisualizerLibrary;
+﻿using NotificationsVisualizerLibrary;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Notifications;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
+
+#if WINDOWS_UAP
+using Microsoft.Toolkit.Uwp.Notifications;
+#else
+using CommunityToolkit.Notifications;
+#endif
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -36,7 +39,7 @@ namespace NotificationsVisualizerLibraryTest
             ToggleShowHomework.Toggled += ToggleShowHomework_Toggled;
         }
 
-        private async Task UpdateTilePropertiesAsync(PreviewTile tile)
+        private static async Task UpdateTilePropertiesAsync(PreviewTile tile)
         {
             tile.DisplayName = "CSC 252";
             tile.VisualElements.BackgroundColor = Colors.Red;

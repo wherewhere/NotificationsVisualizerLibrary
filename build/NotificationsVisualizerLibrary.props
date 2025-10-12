@@ -11,10 +11,5 @@
     <EnableXBindDiagnostics>false</EnableXBindDiagnostics>
     <EnableTypeInfoReflection>false</EnableTypeInfoReflection>
   </PropertyGroup>
-  
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_IncludeDesignToolsInPackage</TargetsForTfmSpecificBuildOutput>
-    <IncludeDesignToolsBuildOutput Condition="'$(IncludeDesignToolsBuildOutput)' == ''">$(IncludeBuildOutput)</IncludeDesignToolsBuildOutput>
-  </PropertyGroup>
 
 </Project>

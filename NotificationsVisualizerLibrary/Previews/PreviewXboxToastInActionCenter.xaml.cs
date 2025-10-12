@@ -357,6 +357,9 @@ namespace NotificationsVisualizerLibrary
             ListViewButtons.SelectedIndex = 0;
         }
 
+#if NET
+        [WinRT.GeneratedBindableCustomProperty]
+#endif
         internal partial class ListViewButton : BindableBase
         {
             public string? Title { get; set; }

@@ -9,16 +9,13 @@
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">
-
     <UserControl.Resources>
         <ExponentialEase x:Key="PeekEasingFunction" EasingMode="EaseOut" />
-
         <Storyboard
             x:Key="PeekStoryboard"
             AutoReverse="False"
             RepeatBehavior="0">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TranslateContent" Storyboard.TargetProperty="Y">
-
                 <!--<EasingDoubleKeyFrame KeyTime="0:0:8" Value="-130"/>-->
 
                 <!--  Peek image starts as displayed  -->
@@ -49,22 +46,18 @@
                         <ExponentialEase EasingMode="EaseOut"/>
                     </EasingDoubleKeyFrame.EasingFunction>
                 </EasingDoubleKeyFrame>-->
-
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
     </UserControl.Resources>
 
     <Canvas x:Name="PresentationCanvas" SizeChanged="Canvas_SizeChanged">
-
         <Canvas.Clip>
             <RectangleGeometry x:Name="CanvasClip" />
         </Canvas.Clip>
-
-        <Border x:Name="NotificationContentContainer" Child="{Binding PreviewTileNotificationRaw, ElementName=ThisControl}">
+        <Border x:Name="NotificationContentContainer" Child="{x:Bind PreviewTileNotificationRaw, Mode=OneWay}">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="TranslateContent" />
             </Border.RenderTransform>
         </Border>
-
     </Canvas>
 </UserControl>

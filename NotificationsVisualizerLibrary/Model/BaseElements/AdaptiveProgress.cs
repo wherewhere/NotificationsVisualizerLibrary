@@ -5,6 +5,9 @@ using System.Xml.Linq;
 
 namespace NotificationsVisualizerLibrary.Model
 {
+#if NET
+    [WinRT.GeneratedBindableCustomProperty]
+#endif
     [ObjectModelClass("AdaptiveProgressBar")]
     internal partial class AdaptiveProgress(NotificationType context, FeatureSet supportedFeatures) : AdaptiveChildElement(context, supportedFeatures), IBindingChild
     {

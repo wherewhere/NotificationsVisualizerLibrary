@@ -23,7 +23,10 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace NotificationsVisualizerLibrary
 {
-    public sealed class PreviewToastProperties
+#if NET
+    [WinRT.GeneratedBindableCustomProperty]
+#endif
+    public sealed partial class PreviewToastProperties
     {
         public Color BackgroundColor { get; set; } = Color.FromArgb(255, 0, 120, 215);
 

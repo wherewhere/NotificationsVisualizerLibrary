@@ -10,22 +10,17 @@
     d:DesignWidth="400"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
     mc:Ignorable="d">
-
     <UserControl.Resources>
-
         <converters:BadgeValueToVisibilityConverter x:Key="BadgeValueToVisibilityConverter" />
-
     </UserControl.Resources>
 
-    <Grid Visibility="{Binding Value, Converter={StaticResource BadgeValueToVisibilityConverter}}">
-
+    <Grid Visibility="{x:Bind Value, Converter={StaticResource BadgeValueToVisibilityConverter}, Mode=OneWay}">
         <!--  integer number badge seems to match up with hint-style="body" font size  -->
         <TextBlock
             Margin="4,0,0,4"
             Foreground="White"
             OpticalMarginAlignment="TrimSideBearings"
             Style="{StaticResource BodyTextBlockStyle}"
-            Text="{Binding Value}" />
-
+            Text="{x:Bind Value, Mode=OneWay}" />
     </Grid>
 </UserControl>

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "NotificationsVisualizerLibraryTest": {
+      "commandName": "MsixPackage"
+    }
+  }
+}

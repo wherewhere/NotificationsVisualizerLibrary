@@ -5,10 +5,25 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x86;x64;ARM;ARM64</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <TargetFrameworks>uap10.0;net8.0-windows10.0.26100.0</TargetFrameworks>
+    <TargetFrameworks>uap10.0.10240;net8.0-windows10.0.26100</TargetFrameworks>
     <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
     <UseUwp>true</UseUwp>
+    <VersionPrefix>0.0.0</VersionPrefix>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <PackageTags>notifications;win10;windows 10;tile;tiles;toast;toasts;badge;xml;PreviewTile</PackageTags>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageDescription>The official NotificationsVisualizerLibrary library from Microsoft. This is for Windows 10 UWP apps using the 10240 SDK or newer.
+Have you ever wanted to display a preview of your live tile in your app's settings page, so the user can instantly see how your various settings will affect their live tile?
+This library allows you to add a PreviewTile control that replicates the Start tile, and fully supports adaptive tile notifications.</PackageDescription>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -29,8 +44,10 @@
     </PolySharpIncludeGeneratedTypes>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(TargetFramework) == 'uap10.0'">
+  <PropertyGroup Condition="$(TargetFramework) == 'uap10.0.10240'">
+    <DebugType>full</DebugType>
     <ExtrasUwpMetaPackageVersion>6.2.14</ExtrasUwpMetaPackageVersion>
+    <OutputType>winmdobj</OutputType>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
   </PropertyGroup>
 
@@ -73,7 +90,11 @@
     <Compile Remove="Model\ISubgroupChild.cs" />
   </ItemGroup>
 
-  <Import Project="..\build\NotificationsVisualizerLibrary.props" Condition="$(TargetFramework) == 'uap10.0'" />
-  <Import Project="..\build\NotificationsVisualizerLibrary.targets" Condition="$(TargetFramework) == 'uap10.0'" />
+  <ItemGroup>
+    <None Include="NotificationsVisualizerLibrary.targets" PackagePath="build\native\NotificationsVisualizerLibrary.targets" Pack="true" Visible="false" />
+  </ItemGroup>
+
+  <Import Project="..\build\NotificationsVisualizerLibrary.props" Condition="$(TargetFramework) == 'uap10.0.10240'" />
+  <Import Project="..\build\NotificationsVisualizerLibrary.targets" Condition="$(TargetFramework) == 'uap10.0.10240'" />
 
 </Project>

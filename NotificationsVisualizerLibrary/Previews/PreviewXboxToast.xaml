@@ -11,7 +11,6 @@
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">
-
     <UserControl.Resources>
         <converters:ColorToBrushConverter x:Key="ColorToBrushConverter" />
         <x:Double x:Key="AppLogoSize">36</x:Double>
@@ -32,9 +31,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
         <Grid Padding="12" Background="#155715">
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -43,7 +40,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!--  App icon  -->
-                <Border Background="{Binding Properties.BackgroundColor, ElementName=thisElement, Converter={StaticResource ColorToBrushConverter}}">
+                <Border Background="{x:Bind Properties.BackgroundColor, Converter={StaticResource ColorToBrushConverter}, Mode=OneWay}">
                     <Image
                         Width="{StaticResource AppLogoSize}"
                         Height="{StaticResource AppLogoSize}"
@@ -85,9 +82,7 @@
                         Style="{StaticResource ToastTextBlockStyle}"
                         Text="[subtitle]" />
                 </StackPanel>
-
             </Grid>
-
         </Grid>
 
         <!--  Hold to launch  -->

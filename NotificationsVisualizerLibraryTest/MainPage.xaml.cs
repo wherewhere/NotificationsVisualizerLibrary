@@ -21,13 +21,8 @@ namespace NotificationsVisualizerLibraryTest
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            Frame.Navigated += On_Navigated;
-        }
-
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
             Frame.Navigated -= On_Navigated;
+            Frame.Navigated += On_Navigated;
         }
 
         private void ButtonOpenSampleSettingsPage_Click(object sender, RoutedEventArgs e)

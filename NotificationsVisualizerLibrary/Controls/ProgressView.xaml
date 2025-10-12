@@ -6,10 +6,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:NotificationsVisualizerLibrary.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:NotificationsVisualizerLibrary.Model"
+    d:DataContext="{d:DesignInstance Type=model:AdaptiveProgress}"
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">
-
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -22,7 +23,6 @@
     </UserControl.Resources>
 
     <Grid Name="ProgressGrid" Margin="0,0,0,12">
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -75,6 +75,5 @@
             TextAlignment="Right"
             TextTrimming="Clip"
             TextWrapping="NoWrap" />
-
     </Grid>
 </UserControl>

@@ -6,6 +6,7 @@ using Windows.Storage;
 using Windows.UI.Notifications;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -16,7 +17,21 @@ namespace NotificationsVisualizerLibraryTest
     /// </summary>
     public sealed partial class UpdateTileUsingLocalImagesFrequently : Page
     {
+        private bool isExited = true;
+
         public UpdateTileUsingLocalImagesFrequently() => InitializeComponent();
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            isExited = false;
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            isExited = true;
+        }
 
         private async void ButtonUpdateImage_Click(object sender, RoutedEventArgs e)
         {
@@ -34,7 +49,7 @@ namespace NotificationsVisualizerLibraryTest
 
             PreviewTileUpdater updater = WidePreviewTile.CreateTileUpdater();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; !isExited && i < 100; i++)
             {
                 string tileXml = string.Format(xml, i, i % 100);
 
