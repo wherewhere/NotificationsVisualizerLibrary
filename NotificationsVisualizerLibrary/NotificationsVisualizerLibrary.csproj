@@ -75,8 +75,8 @@ This library allows you to add a PreviewTile control that replicates the Start t
     <DefineConstants>$(DefineConstants);NET7_0_OR_GREATER</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="PolySharp" Version="1.15.0">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))">
+    <PackageReference Include="PolySharp" Version="1.16.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
